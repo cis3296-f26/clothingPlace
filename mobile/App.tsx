@@ -1,5 +1,7 @@
+
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
+import Navbar from './components/Navbar';
 
 export default function App() {
   return (
@@ -10,6 +12,7 @@ export default function App() {
 
       <View style={styles.skeleton}/>
       <View style={styles.skeletonSmall}/>
+      <Navbar />
       <StatusBar style="auto" />
     </View>
   );
