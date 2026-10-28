@@ -6,13 +6,19 @@ import Navbar from './components/Navbar';
 export default function App() {
   return (
     <View style={styles.container}>
-      {/* title and text wrap in a view */}
-      <Text style={styles.title}>ClothingPlace</Text>
-      <Text style={styles.subtitle}>Find your next outfit</Text>
 
-      <View style={styles.skeleton}/>
-      <View style={styles.skeletonSmall}/>
+      {/* Main Content */}
+      <View style={styles.content}>
+        <Text style={styles.title}>ClothingPlace</Text>
+        <Text style={styles.subtitle}>Find your next outfit</Text>
+
+        <View style={styles.skeleton} />
+        <View style={styles.skeletonSmall} />
+      </View>
+
+      {/* Bottom Navigation Bar */}
       <Navbar />
+
       <StatusBar style="auto" />
     </View>
   );
@@ -21,9 +27,13 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#fff',
+    paddingBottom: 24,
+  },
+  content: {
+    flex: 1,
     padding: 24,
     paddingTop: 80,
-    backgroundColor: '#fff',
   },
   title: {
     fontSize: 28,
