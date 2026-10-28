@@ -1,5 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
+import ProductSearch from './components/ProductSearch';
 
 export default function App() {
   return (
@@ -7,6 +8,7 @@ export default function App() {
       {/* title and text wrap in a view */}
       <Text style={styles.title}>ClothingPlace</Text>
       <Text style={styles.subtitle}>Find your next outfit</Text>
+      <ProductSearch />
 
       <View style={styles.skeleton}/>
       <View style={styles.skeletonSmall}/>
