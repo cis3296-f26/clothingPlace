@@ -1,5 +1,7 @@
+
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
+import Navbar from './components/Navbar';
 import ProductSearch from './components/ProductSearch';
 
 export default function App() {
@@ -10,8 +12,18 @@ export default function App() {
       <Text style={styles.subtitle}>Find your next outfit</Text>
       <ProductSearch />
 
-      <View style={styles.skeleton}/>
-      <View style={styles.skeletonSmall}/>
+      {/* Main Content */}
+      <View style={styles.content}>
+        <Text style={styles.title}>ClothingPlace</Text>
+        <Text style={styles.subtitle}>Find your next outfit</Text>
+
+        <View style={styles.skeleton} />
+        <View style={styles.skeletonSmall} />
+      </View>
+
+      {/* Bottom Navigation Bar */}
+      <Navbar />
+
       <StatusBar style="auto" />
     </View>
   );
@@ -20,9 +32,13 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#fff',
+    paddingBottom: 24,
+  },
+  content: {
+    flex: 1,
     padding: 24,
     paddingTop: 80,
-    backgroundColor: '#fff',
   },
   title: {
     fontSize: 28,
