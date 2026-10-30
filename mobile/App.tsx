@@ -2,10 +2,15 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import Navbar from './components/Navbar';
+import ProductSearch from './components/ProductSearch';
 
 export default function App() {
   return (
     <View style={styles.container}>
+      {/* title and text wrap in a view */}
+      <Text style={styles.title}>ClothingPlace</Text>
+      <Text style={styles.subtitle}>Find your next outfit</Text>
+      <ProductSearch />
 
       {/* Main Content */}
       <View style={styles.content}>
