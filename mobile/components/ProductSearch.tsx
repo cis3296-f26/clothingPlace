@@ -1,22 +1,8 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import SearchBar from './SearchBar';
-import { Product, sampleProducts } from '../data/sampleProducts';
-
-// Returns products whose name, brand, category, or style tags contain the query.
-export function filterProducts(products: Product[], query: string): Product[] {
-  const q = query.trim().toLowerCase();
-  if (q === '') return [];
-  return products.filter((p) =>
-    [p.name, p.vendorName, p.category, ...p.styleTags].some((field) =>
-      field.toLowerCase().includes(q),
-    ),
-  );
-}
-
-function formatPrice(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
-}
+import { sampleProducts } from '../data/sampleProducts';
+import { filterProducts, formatPrice } from '../utils/filterProducts';
 
 export default function ProductSearch() {
   const [query, setQuery] = useState('');
