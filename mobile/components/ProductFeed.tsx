@@ -7,10 +7,11 @@ import { filterProducts } from '../utils/filterProducts';
 type ProductFeedProps = {
   query: string;
   onSelectProduct: (product: Product) => void;
+  // Extra space at the bottom, like room for the floating navbar
+  bottomPadding?: number;
 };
 
-// A null entry keeps the last row on an odd result count from stretching its
-// only card across the full width.
+// Blank filler so a lone last card doesn't stretch across the full width
 type FeedItem = { product: Product } | { spacer: true };
 
 const NUM_COLUMNS = 2;
@@ -18,6 +19,7 @@ const NUM_COLUMNS = 2;
 export default function ProductFeed({
   query,
   onSelectProduct,
+  bottomPadding = 20,
 }: ProductFeedProps) {
   const results = useMemo(
     () => filterProducts(sampleProducts, query),
@@ -55,7 +57,10 @@ export default function ProductFeed({
         )
       }
       columnWrapperStyle={styles.row}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[
+        styles.content,
+        { paddingBottom: bottomPadding },
+      ]}
       ListHeaderComponent={
         results.length > 0 ? (
           <Text style={styles.count}>
@@ -90,11 +95,12 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 8,
-    gap: 12,
+    // Extra space so card shadows don't get cut off
+    paddingBottom: 20,
+    gap: 16,
   },
   row: {
-    gap: 12,
+    gap: 16,
   },
   spacer: {
     flex: 1,

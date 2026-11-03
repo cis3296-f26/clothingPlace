@@ -1,22 +1,20 @@
-// Sample catalog used until the app is connected to Supabase.
-// Fields mirror the `products` table (plus the vendor, category and
-// style tag names it joins to). Prices are integer cents, like the schema.
+// Sample products to use until we connect to the database
+// Prices are stored in cents
 
 export type Product = {
   id: string;
   name: string;
   vendorName: string;
-  // Neighborhood the vendor sells from. Powers the "shop local" feed.
+  // Where the vendor is based
   neighborhood: string;
   category: string;
   styleTags: string[];
   priceCents: number;
-  // Remote photo until vendors upload real product images.
+  // Placeholder photo until vendors upload their own
   imageUrl: string;
 };
 
-// Portrait (3:4) product photos, cropped by Unsplash's image CDN so each
-// card gets a correctly sized, on-theme shot. Swap for vendor uploads later.
+// Builds a photo link sized for the product cards
 function photo(id: string): string {
   return `https://images.unsplash.com/photo-${id}?w=600&h=800&fit=crop&q=80`;
 }

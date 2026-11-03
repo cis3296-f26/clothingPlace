@@ -12,12 +12,12 @@ type SearchBarProps = {
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
-  // Lets the parent screen control spacing/margins around the bar.
+  // Extra styling from the screen using the bar, like spacing
   containerStyle?: StyleProp<ViewStyle>;
 };
 
-// A controlled text input with a clear button. The parent owns the text,
-// so any screen can reuse this and decide what to search.
+// Search box with a clear button
+// The screen keeps track of the text
 export default function SearchBar({
   value,
   onChangeText,

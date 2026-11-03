@@ -7,11 +7,12 @@ type ProductCardProps = {
   onPress?: (product: Product) => void;
 };
 
-// One listing in the feed grid: photo, name, vendor + neighborhood, price,
-// and a couple of style tags. Tapping it will open the product detail screen.
+// A product in the grid: photo, name, vendor and price
+// The shadow and the rounded corners are on separate views on purpose
 export default function ProductCard({ product, onPress }: ProductCardProps) {
   const { name, vendorName, neighborhood, priceCents, styleTags, imageUrl } =
     product;
+  const primaryTag = styleTags[0];
 
   return (
     <Pressable
@@ -20,95 +21,101 @@ export default function ProductCard({ product, onPress }: ProductCardProps) {
       accessibilityRole="button"
       accessibilityLabel={`${name} by ${vendorName} in ${neighborhood}, ${formatPrice(priceCents)}`}
     >
-      <Image
-        source={{ uri: imageUrl }}
-        style={styles.image}
-        resizeMode="cover"
-        accessibilityIgnoresInvertColors
-      />
+      <View style={styles.clip}>
+        <View>
+          <Image
+            source={{ uri: imageUrl }}
+            style={styles.image}
+            resizeMode="cover"
+            accessibilityIgnoresInvertColors
+          />
+          {primaryTag && (
+            <View style={styles.tag}>
+              <Text style={styles.tagText}>{primaryTag}</Text>
+            </View>
+          )}
+        </View>
 
-      <View style={styles.body}>
-        <Text style={styles.name} numberOfLines={2}>
-          {name}
-        </Text>
-        <Text style={styles.vendor} numberOfLines={1}>
-          {vendorName} · {neighborhood}
-        </Text>
-
-        <View style={styles.footer}>
+        <View style={styles.body}>
+          <Text style={styles.name} numberOfLines={2}>
+            {name}
+          </Text>
+          <Text style={styles.vendor} numberOfLines={1}>
+            {vendorName} · {neighborhood}
+          </Text>
           <Text style={styles.price}>{formatPrice(priceCents)}</Text>
-          <View style={styles.tags}>
-            {styleTags.slice(0, 2).map((tag) => (
-              <View key={tag} style={styles.tag}>
-                <Text style={styles.tagText}>{tag}</Text>
-              </View>
-            ))}
-          </View>
         </View>
       </View>
     </Pressable>
   );
 }
 
+const CARD_RADIUS = 16;
+
 const styles = StyleSheet.create({
   card: {
     flex: 1,
+    borderRadius: CARD_RADIUS,
+    // White background so the shadow shows up
     backgroundColor: '#ffffff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#eeeeee',
-    overflow: 'hidden',
-    elevation: 2,
     shadowColor: '#000',
     shadowOpacity: 0.08,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
   },
   cardPressed: {
-    opacity: 0.85,
+    opacity: 0.92,
+    transform: [{ scale: 0.98 }],
+  },
+  clip: {
+    flex: 1,
+    borderRadius: CARD_RADIUS,
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#e8e8e8',
   },
   image: {
     width: '100%',
     aspectRatio: 3 / 4,
     backgroundColor: '#f0f0f0',
   },
+  // Style label on top of the photo
+  tag: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+  },
+  tagText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#333333',
+    textTransform: 'capitalize',
+  },
   body: {
-    padding: 10,
+    flex: 1,
+    padding: 12,
   },
   name: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
+    lineHeight: 20,
     color: '#111111',
   },
   vendor: {
-    marginTop: 2,
+    marginTop: 3,
     fontSize: 12,
-    color: '#777777',
-  },
-  footer: {
-    marginTop: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    color: '#8a8a8a',
   },
   price: {
-    fontSize: 15,
+    marginTop: 'auto',
+    paddingTop: 10,
+    fontSize: 16,
     fontWeight: '700',
     color: '#111111',
-  },
-  tags: {
-    flexDirection: 'row',
-    gap: 4,
-    flexShrink: 1,
-  },
-  tag: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-    backgroundColor: '#f0f0f0',
-  },
-  tagText: {
-    fontSize: 10,
-    color: '#555555',
   },
 });

@@ -1,8 +1,7 @@
 import { Product } from '../data/sampleProducts';
 
-// Returns products whose name, brand, neighborhood, category, or style tags
-// contain the query. An empty query returns the whole catalog, so the home
-// feed can show every listing before the user searches.
+// Finds products that match the search text
+// An empty search shows everything
 export function filterProducts(products: Product[], query: string): Product[] {
   const q = query.trim().toLowerCase();
   if (q === '') return products;

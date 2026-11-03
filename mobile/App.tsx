@@ -5,6 +5,7 @@ import {
   SafeAreaProvider,
   SafeAreaView,
   initialWindowMetrics,
+  useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import Navbar from './components/Navbar';
 import ProductDetailSheet from './components/ProductDetailSheet';
@@ -12,13 +13,21 @@ import ProductFeed from './components/ProductFeed';
 import SearchBar from './components/SearchBar';
 import { Product } from './data/sampleProducts';
 
+// Rough height of the floating navbar, and the gap below it
+const NAV_HEIGHT = 56;
+const NAV_MARGIN = 12;
+
 function HomeScreen() {
   const [query, setQuery] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const insets = useSafeAreaInsets();
+
+  // The navbar floats over the feed, so leave room for it at the bottom
+  const navBottom = Math.max(insets.bottom, NAV_MARGIN);
+  const feedBottomPadding = navBottom + NAV_HEIGHT + 16;
 
   return (
-    // Left/right/top insets pad the header; the footer owns the bottom inset
-    // so the navbar background extends under the home indicator.
+    // The navbar looks after the bottom edge itself
     <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <StatusBar style="auto" />
 
@@ -34,12 +43,16 @@ function HomeScreen() {
       </View>
 
       {/* Listings */}
-      <ProductFeed query={query} onSelectProduct={setSelectedProduct} />
+      <ProductFeed
+        query={query}
+        onSelectProduct={setSelectedProduct}
+        bottomPadding={feedBottomPadding}
+      />
 
-      {/* Bottom Navigation Bar */}
-      <SafeAreaView edges={['bottom']} style={styles.footer}>
+      {/* Floating navbar */}
+      <View style={[styles.navDock, { bottom: navBottom }]}>
         <Navbar />
-      </SafeAreaView>
+      </View>
 
       <ProductDetailSheet
         product={selectedProduct}
@@ -50,7 +63,7 @@ function HomeScreen() {
 }
 
 export default function App() {
-  // initialWindowMetrics avoids a safe-area flash on first render.
+  // Lets the app know about notches and the home bar
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <HomeScreen />
@@ -83,11 +96,10 @@ const styles = StyleSheet.create({
   searchBar: {
     marginTop: 16,
   },
-  footer: {
-    backgroundColor: '#fff',
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#e5e5e5',
-    paddingHorizontal: 16,
-    paddingTop: 8,
+  navDock: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    pointerEvents: 'box-none',
   },
 });

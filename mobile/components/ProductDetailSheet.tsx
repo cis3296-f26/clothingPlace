@@ -7,7 +7,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Path } from 'react-native-svg';
 import { Product } from '../data/sampleProducts';
 import { formatPrice } from '../utils/filterProducts';
 
@@ -16,39 +16,35 @@ type ProductDetailSheetProps = {
   onClose: () => void;
 };
 
-// Bottom sheet shown when a feed card is tapped. Uses a plain Modal so the
-// app stays dependency-free; swap for a router screen when navigation lands.
+// Popup card shown when you tap a product
+// Everything behind it is dimmed
 export default function ProductDetailSheet({
   product,
   onClose,
 }: ProductDetailSheetProps) {
-  const insets = useSafeAreaInsets();
-
   return (
     <Modal
       visible={product !== null}
-      animationType="slide"
+      animationType="fade"
       transparent
+      statusBarTranslucent
       onRequestClose={onClose}
     >
       <View style={styles.backdrop}>
-        {/* Tapping the dimmed area behind the sheet dismisses it. */}
+        {/* Tap outside the card to close it */}
         <Pressable
-          style={styles.backdropFill}
+          style={StyleSheet.absoluteFill}
           onPress={onClose}
           accessibilityRole="button"
           accessibilityLabel="Close product details"
         />
 
-        <View style={[styles.sheet, { paddingBottom: insets.bottom + 16 }]}>
-          {product && (
+        {product && (
+          <View style={styles.card}>
             <ScrollView
               bounces={false}
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.content}
             >
-              <View style={styles.grabber} />
-
               <Image
                 source={{ uri: product.imageUrl }}
                 style={styles.image}
@@ -56,37 +52,49 @@ export default function ProductDetailSheet({
                 accessibilityIgnoresInvertColors
               />
 
-              <Text style={styles.name}>{product.name}</Text>
-              <Text style={styles.vendor}>
-                {product.vendorName} · {product.neighborhood}
-              </Text>
-              <Text style={styles.price}>
-                {formatPrice(product.priceCents)}
-              </Text>
+              <View style={styles.body}>
+                <Text style={styles.category}>{product.category}</Text>
+                <Text style={styles.name}>{product.name}</Text>
+                <Text style={styles.vendor}>
+                  {product.vendorName} · {product.neighborhood}
+                </Text>
 
-              <View style={styles.tags}>
-                {product.styleTags.map((tag) => (
-                  <View key={tag} style={styles.tag}>
-                    <Text style={styles.tagText}>{tag}</Text>
-                  </View>
-                ))}
+                <View style={styles.tags}>
+                  {product.styleTags.map((tag) => (
+                    <View key={tag} style={styles.tag}>
+                      <Text style={styles.tagText}>{tag}</Text>
+                    </View>
+                  ))}
+                </View>
+
+                <Text style={styles.price}>
+                  {formatPrice(product.priceCents)}
+                </Text>
               </View>
-
-              <Text style={styles.category}>{product.category}</Text>
-
-              <Pressable
-                onPress={onClose}
-                style={({ pressed }) => [
-                  styles.closeButton,
-                  pressed && styles.closeButtonPressed,
-                ]}
-                accessibilityRole="button"
-              >
-                <Text style={styles.closeButtonText}>Close</Text>
-              </Pressable>
             </ScrollView>
-          )}
-        </View>
+
+            {/* Close button */}
+            <Pressable
+              onPress={onClose}
+              style={({ pressed }) => [
+                styles.closeButton,
+                pressed && styles.closeButtonPressed,
+              ]}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+            >
+              <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
+                <Path
+                  d="M6 6l12 12M18 6L6 18"
+                  stroke="#111111"
+                  strokeWidth={2.25}
+                  strokeLinecap="round"
+                />
+              </Svg>
+            </Pressable>
+          </View>
+        )}
       </View>
     </Modal>
   );
@@ -95,40 +103,42 @@ export default function ProductDetailSheet({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
   },
-  backdropFill: {
-    flex: 1,
-  },
-  sheet: {
-    backgroundColor: '#ffffff',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 20,
-    paddingTop: 8,
+  card: {
+    width: '100%',
+    maxWidth: 420,
     maxHeight: '85%',
-  },
-  content: {
-    paddingBottom: 8,
-  },
-  grabber: {
-    alignSelf: 'center',
-    width: 40,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#d4d4d4',
-    marginBottom: 12,
+    borderRadius: 24,
+    overflow: 'hidden',
+    backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 12,
   },
   image: {
     width: '100%',
-    aspectRatio: 3 / 4,
-    borderRadius: 12,
+    aspectRatio: 5 / 6,
     backgroundColor: '#f0f0f0',
   },
+  body: {
+    padding: 20,
+  },
+  category: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#999999',
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
   name: {
-    marginTop: 14,
-    fontSize: 20,
+    marginTop: 6,
+    fontSize: 22,
     fontWeight: '700',
     color: '#111111',
   },
@@ -137,49 +147,42 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#777777',
   },
-  price: {
-    marginTop: 10,
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#111111',
-  },
   tags: {
-    marginTop: 12,
+    marginTop: 14,
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 6,
   },
   tag: {
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-    backgroundColor: '#f0f0f0',
+    paddingVertical: 5,
+    borderRadius: 999,
+    backgroundColor: '#f2f2f2',
   },
   tagText: {
     fontSize: 12,
+    fontWeight: '500',
     color: '#555555',
+    textTransform: 'capitalize',
   },
-  category: {
-    marginTop: 12,
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#999999',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+  price: {
+    marginTop: 18,
+    fontSize: 24,
+    fontWeight: '800',
+    color: '#111111',
   },
   closeButton: {
-    marginTop: 20,
-    paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: '#111111',
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
   },
   closeButtonPressed: {
-    opacity: 0.8,
-  },
-  closeButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
+    opacity: 0.7,
   },
 });
