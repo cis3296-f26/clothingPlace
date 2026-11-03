@@ -1,179 +1,214 @@
 
 import { useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import {
-  StyleSheet,
-  Text,
-  View,
-  Pressable,
-} from 'react-native';
+  SafeAreaProvider,
+  SafeAreaView,
+  initialWindowMetrics,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
+
+import Navbar, { type TabName } from './components/Navbar';
+import ProductDetailSheet from './components/ProductDetailSheet';
+import ProductFeed from './components/ProductFeed';
+import SearchBar from './components/SearchBar';
+
+import {
+  Product,
+  sampleProducts,
+} from './data/sampleProducts';
 
 import SavedItemsScreen from './src/screens/SavedItemsScreen';
 import { SavedItemsProvider } from './src/saved/SavedItemsContext';
 
-type Screen = 'Home' | 'Wishlist';
+const NAV_HEIGHT = 56;
+const NAV_MARGIN = 12;
 
-export default function App() {
+function ClothingPlaceApp() {
+  const [activeTab, setActiveTab] = useState<TabName>('Home');
+  const [query, setQuery] = useState('');
+  const [selectedProduct, setSelectedProduct] =
+    useState<Product | null>(null);
+
+  const insets = useSafeAreaInsets();
+
+  const navBottom = Math.max(insets.bottom, NAV_MARGIN);
+  const feedBottomPadding = navBottom + NAV_HEIGHT + 20;
+
+  const openProduct = (productId: string) => {
+    const product = sampleProducts.find(
+      (item) => item.id === productId,
+    );
+
+    if (product) {
+      setSelectedProduct(product);
+    }
+  };
+
+  const showProducts =
+    activeTab === 'Home' || activeTab === 'Discover';
+
   return (
-    <SavedItemsProvider userId="demo-user">
-      <ClothingPlaceApp />
-    </SavedItemsProvider>
+    <SafeAreaView
+      style={styles.container}
+      edges={['top', 'left', 'right']}
+    >
+      <StatusBar style="auto" />
+
+      {showProducts && (
+        <>
+          <View style={styles.header}>
+            <Text style={styles.title}>ClothingPlace</Text>
+
+            <Text style={styles.subtitle}>
+              {activeTab === 'Discover'
+                ? 'Discover independent clothing brands'
+                : 'Find your next outfit'}
+            </Text>
+
+            <SearchBar
+              value={query}
+              onChangeText={setQuery}
+              containerStyle={styles.searchBar}
+            />
+          </View>
+
+          <ProductFeed
+            query={query}
+            onSelectProduct={setSelectedProduct}
+            bottomPadding={feedBottomPadding}
+          />
+        </>
+      )}
+
+      {activeTab === 'Wishlist' && (
+        <View
+          style={[
+            styles.screenContent,
+            { paddingBottom: feedBottomPadding },
+          ]}
+        >
+          <SavedItemsScreen
+            onBrowse={() => setActiveTab('Discover')}
+            onOpenProduct={openProduct}
+          />
+        </View>
+      )}
+
+      {activeTab === 'Profile' && (
+        <View style={styles.placeholderScreen}>
+          <Text style={styles.placeholderIcon}>👤</Text>
+
+          <Text style={styles.placeholderTitle}>
+            Your Profile
+          </Text>
+
+          <Text style={styles.placeholderText}>
+            Account settings and personal style preferences
+            are coming soon.
+          </Text>
+        </View>
+      )}
+
+      {/* Floating navigation bar */}
+      <View
+        style={[
+          styles.navDock,
+          { bottom: navBottom },
+        ]}
+      >
+        <Navbar
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+      </View>
+
+      {/* Product details and Wishlist button */}
+      <ProductDetailSheet
+        product={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+      />
+    </SafeAreaView>
   );
 }
 
-function ClothingPlaceApp() {
-  const [screen, setScreen] = useState<Screen>('Home');
-
+export default function App() {
   return (
-    <View style={styles.container}>
-      <View style={styles.content}>
-        {screen === 'Home' ? (
-          <View style={styles.home}>
-            <Text style={styles.title}>ClothingPlace</Text>
-            <Text style={styles.subtitle}>
-              Discover your next favorite outfit.
-            </Text>
-
-            <View style={styles.welcomeCard}>
-              <Text style={styles.welcomeTitle}>
-                Discover Your Style
-              </Text>
-              <Text style={styles.welcomeText}>
-                Explore unique clothing from independent brands.
-              </Text>
-
-              <Pressable
-                style={styles.button}
-                onPress={() => setScreen('Wishlist')}
-              >
-                <Text style={styles.buttonText}>
-                  View My Wishlist ♡
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-        ) : (
-          <SavedItemsScreen
-            onBrowse={() => setScreen('Home')}
-          />
-        )}
-      </View>
-
-      <View style={styles.navbar}>
-        <Pressable
-          style={styles.navItem}
-          onPress={() => setScreen('Home')}
-        >
-          <Text style={styles.navIcon}>⌂</Text>
-          <Text
-            style={[
-              styles.navText,
-              screen === 'Home' && styles.activeText,
-            ]}
-          >
-            Home
-          </Text>
-        </Pressable>
-
-        <Pressable
-          style={styles.navItem}
-          onPress={() => setScreen('Wishlist')}
-        >
-          <Text style={styles.navIcon}>
-            {screen === 'Wishlist' ? '♥' : '♡'}
-          </Text>
-          <Text
-            style={[
-              styles.navText,
-              screen === 'Wishlist' && styles.activeText,
-            ]}
-          >
-            Wishlist
-          </Text>
-        </Pressable>
-      </View>
-
-      <StatusBar style="dark" />
-    </View>
+    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+      <SavedItemsProvider userId="demo-user">
+        <ClothingPlaceApp />
+      </SavedItemsProvider>
+    </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    paddingTop: 55,
+    backgroundColor: '#ffffff',
   },
-  content: {
-    flex: 1,
+
+  header: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 12,
+    backgroundColor: '#ffffff',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#e5e5e5',
   },
-  home: {
-    flex: 1,
-    padding: 24,
-  },
+
   title: {
-    fontSize: 30,
-    fontWeight: '800',
-    color: '#111',
-  },
-  subtitle: {
-    fontSize: 15,
-    color: '#777',
-    marginTop: 8,
-  },
-  welcomeCard: {
-    backgroundColor: '#f5f5f5',
-    borderRadius: 18,
-    padding: 24,
-    marginTop: 35,
-  },
-  welcomeTitle: {
-    fontSize: 23,
-    fontWeight: '700',
-    color: '#111',
-  },
-  welcomeText: {
-    fontSize: 15,
-    color: '#666',
-    marginTop: 10,
-    lineHeight: 22,
-  },
-  button: {
-    backgroundColor: '#111',
-    borderRadius: 10,
-    padding: 15,
-    marginTop: 22,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  navbar: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#eee',
-    paddingTop: 12,
-    paddingBottom: 30,
-  },
-  navItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  navIcon: {
     fontSize: 28,
-    color: '#111',
-  },
-  navText: {
-    fontSize: 12,
-    color: '#888',
-    marginTop: 4,
-  },
-  activeText: {
-    color: '#111',
     fontWeight: '700',
+    color: '#111111',
+  },
+
+  subtitle: {
+    marginTop: 4,
+    color: '#666666',
+    fontSize: 14,
+  },
+
+  searchBar: {
+    marginTop: 16,
+  },
+
+  screenContent: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+
+  placeholderScreen: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 30,
+  },
+
+  placeholderIcon: {
+    fontSize: 50,
+    marginBottom: 16,
+  },
+
+  placeholderTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#111111',
+  },
+
+  placeholderText: {
+    fontSize: 14,
+    color: '#777777',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginTop: 10,
+  },
+
+  navDock: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    pointerEvents: 'box-none',
   },
 });
