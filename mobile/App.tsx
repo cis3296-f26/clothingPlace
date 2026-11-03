@@ -1,31 +1,52 @@
-
-import { StatusBar } from 'expo-status-bar';
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import {
+  SafeAreaProvider,
+  SafeAreaView,
+  initialWindowMetrics,
+} from 'react-native-safe-area-context';
 import Navbar from './components/Navbar';
-import ProductSearch from './components/ProductSearch';
+import ProductFeed from './components/ProductFeed';
+import SearchBar from './components/SearchBar';
 
-export default function App() {
+function HomeScreen() {
+  const [query, setQuery] = useState('');
+
   return (
-    <View style={styles.container}>
-      {/* title and text wrap in a view */}
-      <Text style={styles.title}>ClothingPlace</Text>
-      <Text style={styles.subtitle}>Find your next outfit</Text>
-      <ProductSearch />
+    // Left/right/top insets pad the header; the footer owns the bottom inset
+    // so the navbar background extends under the home indicator.
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+      <StatusBar style="auto" />
 
-      {/* Main Content */}
-      <View style={styles.content}>
+      {/* Header */}
+      <View style={styles.header}>
         <Text style={styles.title}>ClothingPlace</Text>
         <Text style={styles.subtitle}>Find your next outfit</Text>
-
-        <View style={styles.skeleton} />
-        <View style={styles.skeletonSmall} />
+        <SearchBar
+          value={query}
+          onChangeText={setQuery}
+          containerStyle={styles.searchBar}
+        />
       </View>
 
-      {/* Bottom Navigation Bar */}
-      <Navbar />
+      {/* Listings */}
+      <ProductFeed query={query} />
 
-      <StatusBar style="auto" />
-    </View>
+      {/* Bottom Navigation Bar */}
+      <SafeAreaView edges={['bottom']} style={styles.footer}>
+        <Navbar />
+      </SafeAreaView>
+    </SafeAreaView>
+  );
+}
+
+export default function App() {
+  // initialWindowMetrics avoids a safe-area flash on first render.
+  return (
+    <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+      <HomeScreen />
+    </SafeAreaProvider>
   );
 }
 
@@ -33,32 +54,32 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingBottom: 24,
   },
-  content: {
-    flex: 1,
-    padding: 24,
-    paddingTop: 80,
+  header: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 12,
+    backgroundColor: '#fff',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#e5e5e5',
   },
   title: {
     fontSize: 28,
     fontWeight: '700',
+    color: '#111111',
   },
   subtitle: {
-    marginTop: 8,
-    color: '#666',
+    marginTop: 4,
+    color: '#666666',
   },
-  skeleton: {
-    height: 180,
-    marginTop: 32,
-    borderRadius: 12,
-    backgroundColor: '#e5e5e5',
-  },
-  skeletonSmall: {
-    width: '60%',
-    height: 20,
+  searchBar: {
     marginTop: 16,
-    borderRadius: 6,
-    backgroundColor: '#e5e5e5',
+  },
+  footer: {
+    backgroundColor: '#fff',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#e5e5e5',
+    paddingHorizontal: 16,
+    paddingTop: 8,
   },
 });

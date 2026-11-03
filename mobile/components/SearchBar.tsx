@@ -1,9 +1,19 @@
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  Pressable,
+  StyleProp,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  ViewStyle,
+} from 'react-native';
 
 type SearchBarProps = {
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
+  // Lets the parent screen control spacing/margins around the bar.
+  containerStyle?: StyleProp<ViewStyle>;
 };
 
 // A controlled text input with a clear button. The parent owns the text,
@@ -12,9 +22,10 @@ export default function SearchBar({
   value,
   onChangeText,
   placeholder = 'Search clothing, brands, or styles',
+  containerStyle,
 }: SearchBarProps) {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, containerStyle]}>
       <TextInput
         style={styles.input}
         value={value}
@@ -45,7 +56,6 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 24,
     paddingHorizontal: 14,
     borderRadius: 12,
     backgroundColor: '#f0f0f0',
