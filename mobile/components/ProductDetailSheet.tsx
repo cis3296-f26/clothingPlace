@@ -1,4 +1,6 @@
+import { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
   Image,
   Modal,
   Pressable,
@@ -22,15 +24,70 @@ export default function ProductDetailSheet({
   product,
   onClose,
 }: ProductDetailSheetProps) {
+  // Keep showing the product while the closing animation plays
+  const [shown, setShown] = useState<Product | null>(null);
+
+  // 0 is closed, 1 is fully open
+  const progress = useRef(new Animated.Value(0)).current;
+
+  const animateIn = () => {
+    Animated.spring(progress, {
+      toValue: 1,
+      useNativeDriver: true,
+      damping: 18,
+      stiffness: 190,
+      mass: 0.9,
+    }).start();
+  };
+
+  useEffect(() => {
+    if (product) {
+      setShown(product);
+      // Reopened while still closing, so there's no new mount to wait for
+      if (shown) animateIn();
+    } else if (shown) {
+      Animated.timing(progress, {
+        toValue: 0,
+        duration: 180,
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (finished) setShown(null);
+      });
+    }
+  }, [product]);
+
+  // Wait until the popup is on screen before opening it
+  useEffect(() => {
+    if (shown && product) animateIn();
+  }, [shown]);
+
+  const fade = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+  const scale = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.92, 1],
+  });
+  const lift = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [28, 0],
+  });
+
   return (
     <Modal
-      visible={product !== null}
-      animationType="fade"
+      visible={shown !== null}
+      animationType="none"
       transparent
       statusBarTranslucent
       onRequestClose={onClose}
     >
-      <View style={styles.backdrop}>
+      <View style={styles.container}>
+        <Animated.View
+          style={[StyleSheet.absoluteFill, styles.backdrop, { opacity: fade }]}
+        />
+
         {/* Tap outside the card to close it */}
         <Pressable
           style={StyleSheet.absoluteFill}
@@ -39,28 +96,36 @@ export default function ProductDetailSheet({
           accessibilityLabel="Close product details"
         />
 
-        {product && (
-          <View style={styles.card}>
+        {shown && (
+          <Animated.View
+            style={[
+              styles.card,
+              {
+                opacity: fade,
+                transform: [{ translateY: lift }, { scale }],
+              },
+            ]}
+          >
             <ScrollView
               bounces={false}
               showsVerticalScrollIndicator={false}
             >
               <Image
-                source={{ uri: product.imageUrl }}
+                source={{ uri: shown.imageUrl }}
                 style={styles.image}
                 resizeMode="cover"
                 accessibilityIgnoresInvertColors
               />
 
               <View style={styles.body}>
-                <Text style={styles.category}>{product.category}</Text>
-                <Text style={styles.name}>{product.name}</Text>
+                <Text style={styles.category}>{shown.category}</Text>
+                <Text style={styles.name}>{shown.name}</Text>
                 <Text style={styles.vendor}>
-                  {product.vendorName} · {product.neighborhood}
+                  {shown.vendorName} · {shown.neighborhood}
                 </Text>
 
                 <View style={styles.tags}>
-                  {product.styleTags.map((tag) => (
+                  {shown.styleTags.map((tag) => (
                     <View key={tag} style={styles.tag}>
                       <Text style={styles.tagText}>{tag}</Text>
                     </View>
@@ -68,7 +133,7 @@ export default function ProductDetailSheet({
                 </View>
 
                 <Text style={styles.price}>
-                  {formatPrice(product.priceCents)}
+                  {formatPrice(shown.priceCents)}
                 </Text>
               </View>
             </ScrollView>
@@ -93,7 +158,7 @@ export default function ProductDetailSheet({
                 />
               </Svg>
             </Pressable>
-          </View>
+          </Animated.View>
         )}
       </View>
     </Modal>
@@ -101,11 +166,13 @@ export default function ProductDetailSheet({
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
+  container: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     padding: 24,
+  },
+  backdrop: {
     backgroundColor: 'rgba(0, 0, 0, 0.6)',
   },
   card: {
