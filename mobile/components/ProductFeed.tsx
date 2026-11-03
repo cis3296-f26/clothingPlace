@@ -1,20 +1,24 @@
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { useMemo } from 'react';
 import ProductCard from './ProductCard';
-import { sampleProducts } from '../data/sampleProducts';
+import { Product, sampleProducts } from '../data/sampleProducts';
 import { filterProducts } from '../utils/filterProducts';
 
 type ProductFeedProps = {
   query: string;
+  onSelectProduct: (product: Product) => void;
 };
 
 // A null entry keeps the last row on an odd result count from stretching its
 // only card across the full width.
-type FeedItem = { product: (typeof sampleProducts)[number] } | { spacer: true };
+type FeedItem = { product: Product } | { spacer: true };
 
 const NUM_COLUMNS = 2;
 
-export default function ProductFeed({ query }: ProductFeedProps) {
+export default function ProductFeed({
+  query,
+  onSelectProduct,
+}: ProductFeedProps) {
   const results = useMemo(
     () => filterProducts(sampleProducts, query),
     [query],
@@ -42,7 +46,10 @@ export default function ProductFeed({ query }: ProductFeedProps) {
       }
       renderItem={({ item }) =>
         'product' in item ? (
-          <ProductCard product={item.product} />
+          <ProductCard
+            product={item.product}
+            onPress={onSelectProduct}
+          />
         ) : (
           <View style={styles.spacer} />
         )

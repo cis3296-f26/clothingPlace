@@ -7,11 +7,14 @@ import {
   initialWindowMetrics,
 } from 'react-native-safe-area-context';
 import Navbar from './components/Navbar';
+import ProductDetailSheet from './components/ProductDetailSheet';
 import ProductFeed from './components/ProductFeed';
 import SearchBar from './components/SearchBar';
+import { Product } from './data/sampleProducts';
 
 function HomeScreen() {
   const [query, setQuery] = useState('');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   return (
     // Left/right/top insets pad the header; the footer owns the bottom inset
@@ -31,12 +34,17 @@ function HomeScreen() {
       </View>
 
       {/* Listings */}
-      <ProductFeed query={query} />
+      <ProductFeed query={query} onSelectProduct={setSelectedProduct} />
 
       {/* Bottom Navigation Bar */}
       <SafeAreaView edges={['bottom']} style={styles.footer}>
         <Navbar />
       </SafeAreaView>
+
+      <ProductDetailSheet
+        product={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+      />
     </SafeAreaView>
   );
 }
