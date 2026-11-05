@@ -19,7 +19,9 @@ import {
   sampleProducts,
 } from './data/sampleProducts';
 
+import ProfileScreen from './src/screens/ProfileScreen';
 import SavedItemsScreen from './src/screens/SavedItemsScreen';
+import { ProfileProvider } from './src/profile/ProfileContext';
 import { SavedItemsProvider } from './src/saved/SavedItemsContext';
 
 const NAV_HEIGHT = 56;
@@ -97,17 +99,12 @@ function ClothingPlaceApp() {
       )}
 
       {activeTab === 'Profile' && (
-        <View style={styles.placeholderScreen}>
-          <Text style={styles.placeholderIcon}>👤</Text>
-
-          <Text style={styles.placeholderTitle}>
-            Your Profile
-          </Text>
-
-          <Text style={styles.placeholderText}>
-            Account settings and personal style preferences
-            are coming soon.
-          </Text>
+        <View style={styles.screenContent}>
+          <ProfileScreen
+            onOpenWishlist={() => setActiveTab('Wishlist')}
+            onOpenProduct={openProduct}
+            bottomPadding={feedBottomPadding}
+          />
         </View>
       )}
 
@@ -137,7 +134,9 @@ export default function App() {
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <SavedItemsProvider userId="demo-user">
-        <ClothingPlaceApp />
+        <ProfileProvider userId="demo-user">
+          <ClothingPlaceApp />
+        </ProfileProvider>
       </SavedItemsProvider>
     </SafeAreaProvider>
   );
@@ -177,32 +176,6 @@ const styles = StyleSheet.create({
   screenContent: {
     flex: 1,
     backgroundColor: '#ffffff',
-  },
-
-  placeholderScreen: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 30,
-  },
-
-  placeholderIcon: {
-    fontSize: 50,
-    marginBottom: 16,
-  },
-
-  placeholderTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#111111',
-  },
-
-  placeholderText: {
-    fontSize: 14,
-    color: '#777777',
-    textAlign: 'center',
-    lineHeight: 22,
-    marginTop: 10,
   },
 
   navDock: {
