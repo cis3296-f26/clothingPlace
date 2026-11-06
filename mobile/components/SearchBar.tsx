@@ -1,31 +1,20 @@
-import {
-  Pressable,
-  StyleProp,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-  ViewStyle,
-} from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 type SearchBarProps = {
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
-  // Extra styling from the screen using the bar, like spacing
-  containerStyle?: StyleProp<ViewStyle>;
 };
 
-// Search box with a clear button
-// The screen keeps track of the text
+// A controlled text input with a clear button. The parent owns the text,
+// so any screen can reuse this and decide what to search.
 export default function SearchBar({
   value,
   onChangeText,
   placeholder = 'Search clothing, brands, or styles',
-  containerStyle,
 }: SearchBarProps) {
   return (
-    <View style={[styles.container, containerStyle]}>
+    <View style={styles.container}>
       <TextInput
         style={styles.input}
         value={value}
@@ -56,6 +45,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 24,
     paddingHorizontal: 14,
     borderRadius: 12,
     backgroundColor: '#f0f0f0',
