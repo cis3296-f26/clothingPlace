@@ -1,12 +1,14 @@
-
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+
+import { sampleProducts } from '../../data/sampleProducts';
 import { useSavedItems } from '../saved/SavedItemsContext';
 import type { SavedItem } from '../types/product';
 
@@ -37,8 +39,12 @@ export default function SavedItemsScreen({
   if (items.length === 0) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyHeart}>♡</Text>
-        <Text style={styles.emptyTitle}>Your wishlist is empty</Text>
+        <Text style={styles.emptyHeart}>{'\u2661'}</Text>
+
+        <Text style={styles.emptyTitle}>
+          Your wishlist is empty
+        </Text>
+
         <Text style={styles.emptyBody}>
           Found something you love? Tap the heart on any
           product to save it here for later.
@@ -48,6 +54,7 @@ export default function SavedItemsScreen({
           <Pressable
             style={styles.browseButton}
             onPress={onBrowse}
+            accessibilityRole="button"
           >
             <Text style={styles.browseText}>
               Explore Clothing
@@ -61,10 +68,14 @@ export default function SavedItemsScreen({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>My Wishlist ♡</Text>
+        <Text style={styles.title}>
+          My Wishlist {'\u2661'}
+        </Text>
+
         <Text style={styles.subtitle}>
           Your favorite clothing, all in one place.
         </Text>
+
         <Text style={styles.count}>
           {items.length} {items.length === 1 ? 'item' : 'items'} saved
         </Text>
@@ -76,41 +87,72 @@ export default function SavedItemsScreen({
         keyExtractor={(item) => item.productId}
         contentContainerStyle={styles.list}
         columnWrapperStyle={styles.columns}
+        showsVerticalScrollIndicator={false}
         renderItem={({ item }) => {
           const product = item.product;
+
+          // Find the matching photo from the Home screen catalog.
+          const catalogProduct = sampleProducts.find(
+            (p) => p.id === product.id,
+          );
+
+          const imageUrl = catalogProduct?.imageUrl;
 
           return (
             <View style={styles.card}>
               <Pressable
                 onPress={() => onOpenProduct?.(product.id)}
+                accessibilityRole="button"
+                accessibilityLabel={`View ${product.name}`}
               >
-                <View
-                  style={[
-                    styles.productImage,
-                    { backgroundColor: product.colorHex || '#eee' },
-                  ]}
-                >
-                  <Text style={styles.imagePlaceholder}>
-                    ClothingPlace
-                  </Text>
-                </View>
+                {imageUrl ? (
+                  <Image
+                    source={{ uri: imageUrl }}
+                    style={styles.productImage}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View
+                    style={[
+                      styles.productImage,
+                      styles.imageFallback,
+                      {
+                        backgroundColor:
+                          product.colorHex || '#eeeeee',
+                      },
+                    ]}
+                  >
+                    <Text style={styles.imagePlaceholder}>
+                      ClothingPlace
+                    </Text>
+                  </View>
+                )}
               </Pressable>
 
               <Pressable
                 style={styles.heartButton}
                 onPress={() => remove(product.id)}
                 hitSlop={8}
+                accessibilityRole="button"
                 accessibilityLabel={`Remove ${product.name} from wishlist`}
               >
-                <Text style={styles.heartIcon}>♥</Text>
+                <Text style={styles.heartIcon}>
+                  {'\u2665'}
+                </Text>
               </Pressable>
 
               <View style={styles.cardInfo}>
-                <Text style={styles.vendor} numberOfLines={1}>
+                <Text
+                  style={styles.vendor}
+                  numberOfLines={1}
+                >
                   {product.vendorName}
                 </Text>
 
-                <Text style={styles.productName} numberOfLines={2}>
+                <Text
+                  style={styles.productName}
+                  numberOfLines={2}
+                >
                   {product.name}
                 </Text>
 
@@ -118,14 +160,17 @@ export default function SavedItemsScreen({
                   ${product.price.toFixed(2)}
                 </Text>
 
-                <Text style={styles.color}>
-                  {product.color}
-                </Text>
+                {product.color !== 'Not specified' && (
+                  <Text style={styles.color}>
+                    {product.color}
+                  </Text>
+                )}
 
                 {onAddToCart && (
                   <Pressable
                     style={styles.cartButton}
                     onPress={() => onAddToCart(item)}
+                    accessibilityRole="button"
                   >
                     <Text style={styles.cartText}>
                       Add to Cart
@@ -192,7 +237,12 @@ const styles = StyleSheet.create({
   },
 
   productImage: {
+    width: '100%',
     height: 170,
+    backgroundColor: '#eeeeee',
+  },
+
+  imageFallback: {
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -213,6 +263,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
   },
 
   heartIcon: {
@@ -318,4 +371,3 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
 });
-
