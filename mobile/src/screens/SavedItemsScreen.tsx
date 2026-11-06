@@ -1,5 +1,7 @@
+
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Image,
   Pressable,
@@ -24,6 +26,25 @@ export default function SavedItemsScreen({
   onBrowse,
 }: Props) {
   const { items, hydrated, remove } = useSavedItems();
+
+  // Ask before removing an item from the Wishlist.
+  const confirmRemove = (productId: string, productName: string) => {
+    Alert.alert(
+      'Remove from Wishlist?',
+      `Are you sure you want to remove ${productName}?`,
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: () => remove(productId),
+        },
+      ],
+    );
+  };
 
   if (!hydrated) {
     return (
@@ -91,7 +112,6 @@ export default function SavedItemsScreen({
         renderItem={({ item }) => {
           const product = item.product;
 
-          // Find the matching photo from the Home screen catalog.
           const catalogProduct = sampleProducts.find(
             (p) => p.id === product.id,
           );
@@ -129,9 +149,12 @@ export default function SavedItemsScreen({
                 )}
               </Pressable>
 
+              {/* Remove with confirmation */}
               <Pressable
                 style={styles.heartButton}
-                onPress={() => remove(product.id)}
+                onPress={() =>
+                  confirmRemove(product.id, product.name)
+                }
                 hitSlop={8}
                 accessibilityRole="button"
                 accessibilityLabel={`Remove ${product.name} from wishlist`}
