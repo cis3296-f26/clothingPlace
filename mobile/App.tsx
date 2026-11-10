@@ -85,15 +85,11 @@ function ClothingPlaceApp() {
       )}
 
       {activeTab === 'Wishlist' && (
-        <View
-          style={[
-            styles.screenContent,
-            { paddingBottom: feedBottomPadding },
-          ]}
-        >
+        <View style={styles.screenContent}>
           <SavedItemsScreen
             onBrowse={() => setActiveTab('Discover')}
             onOpenProduct={openProduct}
+            bottomPadding={feedBottomPadding}
           />
         </View>
       )}

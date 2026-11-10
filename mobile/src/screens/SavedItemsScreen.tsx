@@ -1,4 +1,5 @@
 
+import { useMemo } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -18,14 +19,37 @@ type Props = {
   onAddToCart?: (item: SavedItem) => void;
   onOpenProduct?: (productId: string) => void;
   onBrowse?: () => void;
+  // Extra space at the bottom, like room for the floating navbar
+  bottomPadding?: number;
 };
+
+const NUM_COLUMNS = 2;
+const CARD_RADIUS = 16;
+
+// Blank filler so a lone last card doesn't stretch across the full width
+type ListRow = { item: SavedItem } | { spacer: true };
 
 export default function SavedItemsScreen({
   onAddToCart,
   onOpenProduct,
   onBrowse,
+  bottomPadding = 20,
 }: Props) {
   const { items, hydrated, remove } = useSavedItems();
+
+  // Pad to a full final row so the last card keeps its grid width
+  const rows = useMemo<ListRow[]>(() => {
+    const list: ListRow[] = items.map((item) => ({ item }));
+    const remainder = list.length % NUM_COLUMNS;
+
+    if (remainder !== 0) {
+      for (let i = 0; i < NUM_COLUMNS - remainder; i += 1) {
+        list.push({ spacer: true });
+      }
+    }
+
+    return list;
+  }, [items]);
 
   // Ask before removing an item from the Wishlist.
   const confirmRemove = (productId: string, productName: string) => {
@@ -103,13 +127,23 @@ export default function SavedItemsScreen({
       </View>
 
       <FlatList
-        data={items}
-        numColumns={2}
-        keyExtractor={(item) => item.productId}
-        contentContainerStyle={styles.list}
+        data={rows}
+        numColumns={NUM_COLUMNS}
+        keyExtractor={(row, index) =>
+          'item' in row ? row.item.productId : `spacer-${index}`
+        }
+        contentContainerStyle={[
+          styles.list,
+          { paddingBottom: bottomPadding },
+        ]}
         columnWrapperStyle={styles.columns}
         showsVerticalScrollIndicator={false}
-        renderItem={({ item }) => {
+        renderItem={({ item: row }) => {
+          if (!('item' in row)) {
+            return <View style={styles.spacer} />;
+          }
+
+          const { item } = row;
           const product = item.product;
 
           const catalogProduct = sampleProducts.find(
@@ -120,86 +154,96 @@ export default function SavedItemsScreen({
 
           return (
             <View style={styles.card}>
-              <Pressable
-                onPress={() => onOpenProduct?.(product.id)}
-                accessibilityRole="button"
-                accessibilityLabel={`View ${product.name}`}
-              >
-                {imageUrl ? (
-                  <Image
-                    source={{ uri: imageUrl }}
-                    style={styles.productImage}
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <View
-                    style={[
-                      styles.productImage,
-                      styles.imageFallback,
-                      {
-                        backgroundColor:
-                          product.colorHex || '#eeeeee',
-                      },
-                    ]}
-                  >
-                    <Text style={styles.imagePlaceholder}>
-                      ClothingPlace
-                    </Text>
-                  </View>
-                )}
-              </Pressable>
-
-              {/* Remove with confirmation */}
-              <Pressable
-                style={styles.heartButton}
-                onPress={() =>
-                  confirmRemove(product.id, product.name)
-                }
-                hitSlop={8}
-                accessibilityRole="button"
-                accessibilityLabel={`Remove ${product.name} from wishlist`}
-              >
-                <Text style={styles.heartIcon}>
-                  {'\u2665'}
-                </Text>
-              </Pressable>
-
-              <View style={styles.cardInfo}>
-                <Text
-                  style={styles.vendor}
-                  numberOfLines={1}
+              <View style={styles.clip}>
+                <Pressable
+                  onPress={() => onOpenProduct?.(product.id)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`View ${product.name}`}
                 >
-                  {product.vendorName}
-                </Text>
+                  {imageUrl ? (
+                    <Image
+                      source={{ uri: imageUrl }}
+                      style={styles.productImage}
+                      resizeMode="cover"
+                      accessibilityIgnoresInvertColors
+                    />
+                  ) : (
+                    <View
+                      style={[
+                        styles.productImage,
+                        styles.imageFallback,
+                        {
+                          backgroundColor:
+                            product.colorHex || '#f0f0f0',
+                        },
+                      ]}
+                    >
+                      <Text style={styles.imagePlaceholder}>
+                        ClothingPlace
+                      </Text>
+                    </View>
+                  )}
+                </Pressable>
 
-                <Text
-                  style={styles.productName}
-                  numberOfLines={2}
+                {/* Remove with confirmation */}
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.heartButton,
+                    pressed && styles.heartButtonPressed,
+                  ]}
+                  onPress={() =>
+                    confirmRemove(product.id, product.name)
+                  }
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Remove ${product.name} from wishlist`}
                 >
-                  {product.name}
-                </Text>
-
-                <Text style={styles.price}>
-                  ${product.price.toFixed(2)}
-                </Text>
-
-                {product.color !== 'Not specified' && (
-                  <Text style={styles.color}>
-                    {product.color}
+                  <Text style={styles.heartIcon}>
+                    {'\u2665'}
                   </Text>
-                )}
+                </Pressable>
 
-                {onAddToCart && (
-                  <Pressable
-                    style={styles.cartButton}
-                    onPress={() => onAddToCart(item)}
-                    accessibilityRole="button"
+                <View style={styles.cardInfo}>
+                  <Text
+                    style={styles.vendor}
+                    numberOfLines={1}
                   >
-                    <Text style={styles.cartText}>
-                      Add to Cart
+                    {product.vendorName}
+                  </Text>
+
+                  <Text
+                    style={styles.productName}
+                    numberOfLines={2}
+                  >
+                    {product.name}
+                  </Text>
+
+                  <Text style={styles.price}>
+                    ${product.price.toFixed(2)}
+                  </Text>
+
+                  {product.color !== 'Not specified' && (
+                    <Text style={styles.color}>
+                      {product.color}
                     </Text>
-                  </Pressable>
-                )}
+                  )}
+
+                  {onAddToCart && (
+                    <Pressable
+                      style={({ pressed }) => [
+                        styles.cartButton,
+                        pressed && styles.cartButtonPressed,
+                      ]}
+                      onPress={() => onAddToCart(item)}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Add ${product.name} to cart`}
+                    >
+                      <Text style={styles.cartText}>
+                        Add to Cart
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
               </View>
             </View>
           );
@@ -216,53 +260,71 @@ const styles = StyleSheet.create({
   },
 
   header: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 24,
     paddingBottom: 16,
   },
 
   title: {
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: '700',
     color: '#111',
   },
 
   subtitle: {
     fontSize: 14,
-    color: '#777',
-    marginTop: 6,
+    color: '#666',
+    marginTop: 4,
   },
 
   count: {
-    fontSize: 13,
-    color: '#555',
+    fontSize: 12,
+    color: '#999999',
     marginTop: 16,
     fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 
   list: {
     paddingHorizontal: 16,
-    paddingBottom: 30,
+    paddingTop: 16,
+    gap: 16,
   },
 
   columns: {
-    justifyContent: 'space-between',
+    gap: 16,
   },
 
+  spacer: {
+    flex: 1,
+  },
+
+  // Shadow and rounded corners live on separate views on purpose:
+  // overflow: 'hidden' on the clip would otherwise kill the shadow.
   card: {
-    width: '48%',
-    marginBottom: 22,
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    flex: 1,
+    borderRadius: CARD_RADIUS,
+    backgroundColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
+  },
+
+  clip: {
+    flex: 1,
+    borderRadius: CARD_RADIUS,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#eee',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#e8e8e8',
   },
 
   productImage: {
     width: '100%',
-    height: 170,
-    backgroundColor: '#eeeeee',
+    aspectRatio: 3 / 4,
+    backgroundColor: '#f0f0f0',
   },
 
   imageFallback: {
@@ -271,24 +333,29 @@ const styles = StyleSheet.create({
   },
 
   imagePlaceholder: {
-    fontSize: 12,
-    color: '#777',
+    fontSize: 11,
+    color: '#8a8a8a',
   },
 
   heartButton: {
     position: 'absolute',
     top: 10,
     right: 10,
-    backgroundColor: '#fff',
     width: 34,
     height: 34,
     borderRadius: 17,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 3,
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
     shadowColor: '#000',
     shadowOpacity: 0.12,
     shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
+
+  heartButtonPressed: {
+    opacity: 0.7,
   },
 
   heartIcon: {
@@ -301,43 +368,48 @@ const styles = StyleSheet.create({
   },
 
   vendor: {
-    fontSize: 11,
-    color: '#888',
-    textTransform: 'uppercase',
+    fontSize: 12,
+    color: '#8a8a8a',
   },
 
   productName: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
-    marginTop: 4,
+    lineHeight: 20,
+    marginTop: 3,
     color: '#111',
   },
 
   price: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
-    marginTop: 8,
+    marginTop: 'auto',
+    paddingTop: 10,
     color: '#111',
   },
 
   color: {
     fontSize: 12,
-    color: '#777',
+    color: '#8a8a8a',
     marginTop: 3,
   },
 
   cartButton: {
     backgroundColor: '#111',
-    paddingVertical: 9,
-    borderRadius: 7,
+    paddingVertical: 12,
+    borderRadius: 12,
     alignItems: 'center',
     marginTop: 12,
   },
 
+  cartButtonPressed: {
+    opacity: 0.8,
+  },
+
   cartText: {
     color: '#fff',
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '700',
   },
 
   center: {
@@ -347,7 +419,7 @@ const styles = StyleSheet.create({
   },
 
   loadingText: {
-    color: '#777',
+    color: '#666',
     marginTop: 12,
   },
 
@@ -355,7 +427,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 30,
+    padding: 24,
     backgroundColor: '#fff',
   },
 
@@ -366,7 +438,7 @@ const styles = StyleSheet.create({
   },
 
   emptyTitle: {
-    fontSize: 23,
+    fontSize: 22,
     fontWeight: '700',
     color: '#111',
     textAlign: 'center',
@@ -374,23 +446,23 @@ const styles = StyleSheet.create({
 
   emptyBody: {
     fontSize: 14,
-    color: '#777',
+    color: '#666',
     textAlign: 'center',
-    lineHeight: 22,
-    marginTop: 12,
+    lineHeight: 20,
+    marginTop: 8,
   },
 
   browseButton: {
     backgroundColor: '#111',
-    paddingHorizontal: 28,
+    paddingHorizontal: 24,
     paddingVertical: 14,
-    borderRadius: 10,
+    borderRadius: 12,
     marginTop: 24,
   },
 
   browseText: {
     color: '#fff',
-    fontWeight: '600',
-    fontSize: 14,
+    fontWeight: '700',
+    fontSize: 15,
   },
 });
