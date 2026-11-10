@@ -18,7 +18,7 @@ export default function SaveButton({ product, size = 22 }: Props) {
       accessibilityLabel={saved ? `Remove ${product.name} from saved` : `Save ${product.name} for later`}
       style={({ pressed }) => [styles.button, pressed && styles.pressed]}
     >
-      <Text style={[styles.icon, { fontSize: size, color: saved ? '#D7263D' : '#222' }]}>
+      <Text style={[styles.icon, { fontSize: size, color: saved ? '#e63946' : '#111111' }]}>
         {saved ? '♥' : '♡'}
       </Text>
     </Pressable>
