@@ -19,7 +19,7 @@ import {
   sampleProducts,
 } from './data/sampleProducts';
 
-import ProfileScreen from './src/screens/ProfileScreen';
+import BuyerVendorProfileScreen from './src/screens/BuyerVendorProfileScreen';
 import SavedItemsScreen from './src/screens/SavedItemsScreen';
 import { ProfileProvider } from './src/profile/ProfileContext';
 import { SavedItemsProvider } from './src/saved/SavedItemsContext';
@@ -100,7 +100,7 @@ function ClothingPlaceApp() {
 
       {activeTab === 'Profile' && (
         <View style={styles.screenContent}>
-          <ProfileScreen
+          <BuyerVendorProfileScreen
             onOpenWishlist={() => setActiveTab('Wishlist')}
             onOpenProduct={openProduct}
             bottomPadding={feedBottomPadding}
