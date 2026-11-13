@@ -176,7 +176,7 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
             value={brandName}
             onChangeText={setBrandName}
             placeholder="e.g. Urban Threads"
-            placeholderTextColor="#999"
+            placeholderTextColor="#888888"
             maxLength={60}
             autoCapitalize="words"
             accessibilityLabel="Brand name"
@@ -188,7 +188,7 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
             value={description}
             onChangeText={setDescription}
             placeholder="Tell shoppers about your brand..."
-            placeholderTextColor="#999"
+            placeholderTextColor="#888888"
             multiline
             maxLength={300}
             textAlignVertical="top"
@@ -201,7 +201,7 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
             value={location}
             onChangeText={setLocation}
             placeholder="e.g. Philadelphia, PA"
-            placeholderTextColor="#999"
+            placeholderTextColor="#888888"
             autoCapitalize="words"
             maxLength={80}
             accessibilityLabel="Brand location"
@@ -599,21 +599,21 @@ const styles = StyleSheet.create({
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#dddddd',
     borderRadius: 12,
-    backgroundColor: '#fff',
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    fontSize: 15,
-    color: '#111',
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#111111',
   },
   textArea: {
-    minHeight: 110,
+    minHeight: 112,
   },
   primaryButton: {
-    backgroundColor: '#111',
-    borderRadius: 14,
-    paddingVertical: 17,
+    backgroundColor: '#111111',
+    borderRadius: 12,
+    paddingVertical: 14,
     alignItems: 'center',
     marginTop: 28,
   },
@@ -621,23 +621,26 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   primaryButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: '#ffffff',
+    fontSize: 15,
     fontWeight: '700',
   },
   secondaryButton: {
-    marginTop: 12,
+    borderWidth: 1.5,
+    borderColor: '#111111',
+    borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
+    marginTop: 12,
   },
   secondaryButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
+    color: '#111111',
+    fontSize: 15,
+    fontWeight: '700',
   },
   footerNote: {
-    fontSize: 12,
-    color: '#888',
+    fontSize: 13,
+    color: '#777777',
     textAlign: 'center',
     lineHeight: 18,
     marginTop: 16,
