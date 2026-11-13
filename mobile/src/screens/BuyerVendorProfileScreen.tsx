@@ -17,6 +17,11 @@ type Props = {
   bottomPadding?: number;
 };
 
+const MODES: { key: ProfileMode; label: string }[] = [
+  { key: 'buyer', label: 'Buyer' },
+  { key: 'vendor', label: 'Vendor' },
+];
+
 export default function BuyerVendorProfileScreen({
   onOpenWishlist,
   onOpenProduct,
@@ -26,45 +31,35 @@ export default function BuyerVendorProfileScreen({
 
   return (
     <View style={styles.container}>
+      {/*
+        A single mode switch pinned above both screens. Each screen below
+        renders its own 28/700 header, so only one title is ever on screen.
+      */}
       <View style={styles.switcherWrap}>
-        <View style={styles.track}>
-          <Pressable
-            onPress={() => setMode('buyer')}
-            style={[
-              styles.tab,
-              mode === 'buyer' && styles.tabSelected,
-            ]}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: mode === 'buyer' }}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                mode === 'buyer' && styles.tabTextSelected,
-              ]}
-            >
-              Buyer
-            </Text>
-          </Pressable>
+        <View style={styles.track} accessibilityRole="tablist">
+          {MODES.map(({ key, label }) => {
+            const selected = mode === key;
 
-          <Pressable
-            onPress={() => setMode('vendor')}
-            style={[
-              styles.tab,
-              mode === 'vendor' && styles.tabSelected,
-            ]}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: mode === 'vendor' }}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                mode === 'vendor' && styles.tabTextSelected,
-              ]}
-            >
-              Vendor
-            </Text>
-          </Pressable>
+            return (
+              <Pressable
+                key={key}
+                onPress={() => setMode(key)}
+                style={[styles.tab, selected && styles.tabSelected]}
+                accessibilityRole="tab"
+                accessibilityState={{ selected }}
+                accessibilityLabel={`${label} profile`}
+              >
+                <Text
+                  style={[
+                    styles.tabText,
+                    selected && styles.tabTextSelected,
+                  ]}
+                >
+                  {label}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
       </View>
 
