@@ -79,7 +79,7 @@ export default function BuyerVendorProfileScreen({
             bottomPadding={bottomPadding}
           />
         ) : (
-          <VendorProfileScreen />
+          <VendorProfileScreen bottomPadding={bottomPadding} />
         )}
       </View>
     </View>
@@ -89,7 +89,7 @@ export default function BuyerVendorProfileScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
   },
   header: {
     paddingHorizontal: 20,
