@@ -22,7 +22,15 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-status-bar"
+      "expo-status-bar",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "ClothingPlace uses your camera so you can take a profile photo.",
+          "photosPermission": "ClothingPlace uses your photo library so you can choose a profile photo.",
+          "microphonePermission": false
+        }
+      ]
     ]
   }
 }
