@@ -316,26 +316,17 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
       </Text>
 
       <View style={styles.statsRow}>
-        <View style={styles.statCard}>
-          <Text style={styles.statIcon}>
-            {'\uD83D\uDC55'}
-          </Text>
+        <View style={styles.statTile}>
           <Text style={styles.statValue}>0</Text>
           <Text style={styles.statLabel}>Listings</Text>
         </View>
 
-        <View style={styles.statCard}>
-          <Text style={styles.statIcon}>
-            {'\uD83D\uDCE6'}
-          </Text>
+        <View style={styles.statTile}>
           <Text style={styles.statValue}>0</Text>
           <Text style={styles.statLabel}>Orders</Text>
         </View>
 
-        <View style={styles.statCard}>
-          <Text style={styles.statIcon}>
-            {'\uD83D\uDCB0'}
-          </Text>
+        <View style={styles.statTile}>
           <Text style={styles.statValue}>$0</Text>
           <Text style={styles.statLabel}>Sales</Text>
         </View>
@@ -527,31 +518,28 @@ const styles = StyleSheet.create({
     marginTop: 28,
     marginBottom: 16,
   },
+  // Stat tiles — outlines, no fill, no shadow
   statsRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 12,
   },
-  statCard: {
+  statTile: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: '#eee',
-    borderRadius: 14,
-    paddingVertical: 18,
     alignItems: 'center',
-  },
-  statIcon: {
-    fontSize: 21,
-    marginBottom: 8,
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#e8e8e8',
   },
   statValue: {
-    fontSize: 23,
+    fontSize: 22,
     fontWeight: '800',
-    color: '#111',
+    color: '#111111',
   },
   statLabel: {
     fontSize: 12,
-    color: '#777',
-    marginTop: 4,
+    color: '#8a8a8a',
+    marginTop: 2,
   },
   demoNote: {
     fontSize: 11,
