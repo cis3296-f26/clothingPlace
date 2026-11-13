@@ -15,6 +15,8 @@ type ProfileContextValue = {
   hydrated: boolean;
   updateProfile: (changes: Partial<Pick<ShopperProfile, 'displayName' | 'neighborhood'>>) => void;
   toggleStyleTag: (tag: string) => void;
+  // Pass null to remove the photo
+  setPhotoUri: (uri: string | null) => void;
 };
 
 const ProfileContext = createContext<ProfileContextValue | null>(null);
@@ -64,9 +66,13 @@ export function ProfileProvider({ userId, children }: Props) {
     });
   }, []);
 
+  const setPhotoUri = useCallback((uri: string | null) => {
+    setProfile((prev) => ({ ...prev, photoUri: uri }));
+  }, []);
+
   const value = useMemo(
-    () => ({ profile, hydrated, updateProfile, toggleStyleTag }),
-    [profile, hydrated, updateProfile, toggleStyleTag],
+    () => ({ profile, hydrated, updateProfile, toggleStyleTag, setPhotoUri }),
+    [profile, hydrated, updateProfile, toggleStyleTag, setPhotoUri],
   );
 
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;

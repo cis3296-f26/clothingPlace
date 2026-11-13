@@ -11,6 +11,8 @@ export type ShopperProfile = {
   styleTags: string[];
   styleQuizCompleted: boolean;
   memberSince: number; // epoch ms
+  // Local file URI of the profile photo taken with the camera or picked from the library
+  photoUri: string | null;
 };
 
 export const defaultProfile = (now = Date.now()): ShopperProfile => ({
@@ -20,4 +22,5 @@ export const defaultProfile = (now = Date.now()): ShopperProfile => ({
   styleTags: [],
   styleQuizCompleted: false,
   memberSince: now,
+  photoUri: null,
 });

@@ -43,5 +43,6 @@ function sanitizeProfile(value: unknown): ShopperProfile {
     styleQuizCompleted:
       typeof v.styleQuizCompleted === 'boolean' ? v.styleQuizCompleted : base.styleQuizCompleted,
     memberSince: typeof v.memberSince === 'number' ? v.memberSince : base.memberSince,
+    photoUri: typeof v.photoUri === 'string' && v.photoUri ? v.photoUri : base.photoUri,
   };
 }
