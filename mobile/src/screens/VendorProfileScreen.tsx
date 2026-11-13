@@ -14,6 +14,8 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import VendorPopupCard from '../../components/VendorPopupCard';
+
 type VendorProfile = {
   brandName: string;
   description: string;
@@ -36,6 +38,9 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
   const [brandName, setBrandName] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
+
+  // The "upload a product" popup
+  const [uploadOpen, setUploadOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -345,7 +350,12 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
 
         <View style={styles.divider} />
 
-        <View style={styles.managementRow}>
+        <Pressable
+          style={styles.managementRow}
+          onPress={() => setUploadOpen(true)}
+          accessibilityRole="button"
+          accessibilityLabel="Add a product"
+        >
           <View style={styles.managementInfo}>
             <Text style={styles.managementTitle}>
               Add a Product
@@ -354,8 +364,8 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
               Create a new clothing listing
             </Text>
           </View>
-          <Text style={styles.comingSoon}>Soon</Text>
-        </View>
+          <Text style={styles.chevron}>{'\u203A'}</Text>
+        </Pressable>
 
         <View style={styles.divider} />
 
@@ -387,6 +397,13 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
           expands its marketplace features.
         </Text>
       </View>
+
+      {/* Modal renders in its own layer, so it can sit inside the ScrollView
+          without affecting the dashboard's layout. */}
+      <VendorPopupCard
+        visible={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+      />
     </ScrollView>
   );
 }
