@@ -294,24 +294,20 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
             <Text style={styles.brandLocation}>
               {'\uD83D\uDCCD'} {vendor.location}
             </Text>
+
+            <View style={styles.brandMetaRow}>
+              <View style={styles.rolePill}>
+                <Text style={styles.rolePillText}>Vendor</Text>
+              </View>
+
+              <Text style={styles.brandStatus}>Set up</Text>
+            </View>
           </View>
         </View>
 
         <Text style={styles.brandDescription}>
           {vendor.description}
         </Text>
-
-        <View style={styles.statusRow}>
-          <Text style={styles.statusLabel}>
-            Your seller profile
-          </Text>
-
-          <View style={styles.statusPill}>
-            <Text style={styles.statusText}>
-              Set up
-            </Text>
-          </View>
-        </View>
       </View>
 
       {/* Statistics */}
@@ -501,29 +497,27 @@ const styles = StyleSheet.create({
     lineHeight: 21,
     marginTop: 18,
   },
-  statusRow: {
-    borderTopWidth: 1,
-    borderTopColor: '#e4e4e4',
-    marginTop: 18,
-    paddingTop: 16,
+  rolePill: {
+    backgroundColor: '#111111',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginRight: 8,
+  },
+  rolePillText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  brandMetaRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    marginTop: 8,
   },
-  statusLabel: {
+  brandStatus: {
     fontSize: 12,
-    color: '#777',
-  },
-  statusPill: {
-    backgroundColor: '#e6f4e9',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-  },
-  statusText: {
-    color: '#257844',
-    fontSize: 12,
-    fontWeight: '700',
+    color: '#8a8a8a',
   },
   // Sections
   sectionTitle: {
