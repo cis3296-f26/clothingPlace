@@ -344,9 +344,6 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
 
       <View style={styles.managementCard}>
         <View style={styles.managementRow}>
-          <Text style={styles.managementIcon}>
-            {'\uD83D\uDCE6'}
-          </Text>
           <View style={styles.managementInfo}>
             <Text style={styles.managementTitle}>
               Your Products
@@ -361,9 +358,6 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
         <View style={styles.divider} />
 
         <View style={styles.managementRow}>
-          <Text style={styles.managementIcon}>
-            {'\u2795'}
-          </Text>
           <View style={styles.managementInfo}>
             <Text style={styles.managementTitle}>
               Add a Product
@@ -383,9 +377,6 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
           accessibilityRole="button"
           accessibilityLabel="Edit brand information"
         >
-          <Text style={styles.managementIcon}>
-            {'\u270F\uFE0F'}
-          </Text>
           <View style={styles.managementInfo}>
             <Text style={styles.managementTitle}>
               Edit Brand Information
@@ -394,7 +385,7 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
               Update your name, location, or description
             </Text>
           </View>
-          <Text style={styles.arrow}>{'\u203A'}</Text>
+          <Text style={styles.chevron}>{'\u203A'}</Text>
         </Pressable>
       </View>
 
@@ -560,18 +551,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 18,
   },
-  managementIcon: {
-    fontSize: 22,
-    width: 36,
-  },
   managementInfo: {
     flex: 1,
     paddingRight: 6,
   },
   managementTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#111',
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111111',
   },
   managementSubtitle: {
     fontSize: 12,
@@ -583,9 +570,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#999',
   },
-  arrow: {
-    fontSize: 27,
-    color: '#999',
+  chevron: {
+    fontSize: 22,
+    color: '#999999',
   },
   divider: {
     height: 1,
