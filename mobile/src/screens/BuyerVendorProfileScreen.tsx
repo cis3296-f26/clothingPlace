@@ -26,13 +26,13 @@ export default function BuyerVendorProfileScreen({
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.tabContainer}>
+      <View style={styles.switcherWrap}>
+        <View style={styles.track}>
           <Pressable
             onPress={() => setMode('buyer')}
             style={[
               styles.tab,
-              mode === 'buyer' && styles.activeTab,
+              mode === 'buyer' && styles.tabSelected,
             ]}
             accessibilityRole="tab"
             accessibilityState={{ selected: mode === 'buyer' }}
@@ -40,7 +40,7 @@ export default function BuyerVendorProfileScreen({
             <Text
               style={[
                 styles.tabText,
-                mode === 'buyer' && styles.activeTabText,
+                mode === 'buyer' && styles.tabTextSelected,
               ]}
             >
               Buyer
@@ -51,7 +51,7 @@ export default function BuyerVendorProfileScreen({
             onPress={() => setMode('vendor')}
             style={[
               styles.tab,
-              mode === 'vendor' && styles.activeTab,
+              mode === 'vendor' && styles.tabSelected,
             ]}
             accessibilityRole="tab"
             accessibilityState={{ selected: mode === 'vendor' }}
@@ -59,7 +59,7 @@ export default function BuyerVendorProfileScreen({
             <Text
               style={[
                 styles.tabText,
-                mode === 'vendor' && styles.activeTabText,
+                mode === 'vendor' && styles.tabTextSelected,
               ]}
             >
               Vendor
@@ -88,35 +88,32 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#ffffff',
   },
-  header: {
+  switcherWrap: {
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#e8e8e8',
   },
-  tabContainer: {
+  track: {
     flexDirection: 'row',
     backgroundColor: '#f2f2f2',
-    borderRadius: 14,
+    borderRadius: 999,
     padding: 4,
   },
   tab: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 8,
     alignItems: 'center',
-    borderRadius: 11,
+    borderRadius: 999,
   },
-  activeTab: {
-    backgroundColor: '#111',
+  tabSelected: {
+    backgroundColor: '#111111',
   },
   tabText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#777',
+    color: '#666666',
   },
-  activeTabText: {
-    color: '#fff',
+  tabTextSelected: {
+    color: '#ffffff',
   },
   content: {
     flex: 1,
