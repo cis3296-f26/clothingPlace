@@ -381,7 +381,7 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
         <Text style={styles.infoTitle}>
           Keep Growing Your Brand
         </Text>
-        <Text style={styles.muted}>
+        <Text style={styles.infoBody}>
           Product uploads, order tracking, and sales
           management can be connected as ClothingPlace
           expands its marketplace features.
@@ -404,12 +404,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  muted: {
-    fontSize: 14,
-    color: '#777',
-    lineHeight: 22,
-    textAlign: 'center',
   },
   loadingText: {
     fontSize: 14,
@@ -528,27 +522,29 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   demoNote: {
-    fontSize: 11,
-    color: '#999',
-    marginTop: 10,
-    marginBottom: 30,
-    lineHeight: 17,
+    fontSize: 13,
+    color: '#777777',
+    lineHeight: 18,
+    marginTop: 12,
+    marginBottom: 4,
   },
+
+  // Management list
   managementCard: {
-    borderWidth: 1,
-    borderColor: '#eee',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#e8e8e8',
     borderRadius: 16,
     paddingHorizontal: 16,
-    marginBottom: 26,
+    marginBottom: 28,
   },
   managementRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 18,
+    paddingVertical: 16,
   },
   managementInfo: {
     flex: 1,
-    paddingRight: 6,
+    paddingRight: 8,
   },
   managementTitle: {
     fontSize: 15,
@@ -557,32 +553,39 @@ const styles = StyleSheet.create({
   },
   managementSubtitle: {
     fontSize: 12,
-    color: '#888',
-    marginTop: 4,
-    lineHeight: 17,
+    color: '#8a8a8a',
+    marginTop: 3,
+    lineHeight: 16,
   },
   comingSoon: {
     fontSize: 12,
-    color: '#999',
+    color: '#999999',
   },
   chevron: {
     fontSize: 22,
     color: '#999999',
   },
   divider: {
-    height: 1,
-    backgroundColor: '#eee',
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: '#e8e8e8',
   },
+
   infoCard: {
     backgroundColor: '#f7f7f7',
     borderRadius: 16,
-    padding: 20,
+    padding: 16,
     gap: 8,
   },
   infoTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111',
+    color: '#111111',
+    textAlign: 'center',
+  },
+  infoBody: {
+    fontSize: 14,
+    color: '#666666',
+    lineHeight: 20,
     textAlign: 'center',
   },
   label: {
