@@ -268,14 +268,11 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
         { paddingBottom: bottomPadding },
       ]}
     >
-      <View style={styles.headerRow}>
-        <Text style={styles.dashboardTitle}>
-          Vendor Dashboard
-        </Text>
-        <Text style={styles.headerIcon}>
-          {'\uD83C\uDFEA'}
-        </Text>
-      </View>
+      <Text style={styles.screenTitle}>Vendor Dashboard</Text>
+
+      <Text style={styles.screenSubtitle}>
+        Manage how your brand appears to shoppers.
+      </Text>
 
       {/* Brand identity card */}
       <View style={styles.brandCard}>
@@ -434,7 +431,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 24,
   },
   center: {
@@ -449,21 +446,17 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     textAlign: 'center',
   },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 22,
-  },
-  dashboardTitle: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#111',
-    flex: 1,
-  },
-  headerIcon: {
+  // Screen header — the standard block from the design guide
+  screenTitle: {
     fontSize: 28,
-    marginLeft: 12,
+    fontWeight: '700',
+    color: '#111111',
+  },
+  screenSubtitle: {
+    fontSize: 14,
+    color: '#666666',
+    marginTop: 4,
+    lineHeight: 20,
   },
   brandCard: {
     backgroundColor: '#f7f7f7',
@@ -532,10 +525,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
   },
+  // Sections
   sectionTitle: {
-    fontSize: 19,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#111',
+    color: '#111111',
+    marginTop: 28,
     marginBottom: 16,
   },
   statsRow: {
