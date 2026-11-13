@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import {
   Pressable,
@@ -21,15 +20,13 @@ type Props = {
 export default function BuyerVendorProfileScreen({
   onOpenWishlist,
   onOpenProduct,
-  bottomPadding = 30,
+  bottomPadding = 20,
 }: Props) {
   const [mode, setMode] = useState<ProfileMode>('buyer');
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>My Profile</Text>
-
         <View style={styles.tabContainer}>
           <Pressable
             onPress={() => setMode('buyer')}
@@ -92,17 +89,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 18,
+    paddingHorizontal: 16,
+    paddingTop: 16,
     paddingBottom: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#111',
-    marginBottom: 18,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#e8e8e8',
   },
   tabContainer: {
     flexDirection: 'row',
