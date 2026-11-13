@@ -160,29 +160,17 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
           ]}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.welcomeCard}>
-            <Text style={styles.storeIcon}>
-              {'\uD83C\uDFEA'}
-            </Text>
-
-            <Text style={styles.welcomeTitle}>
-              {editing ? 'Edit Your Brand' : 'Become a Vendor'}
-            </Text>
-
-            <Text style={styles.muted}>
-              {editing
-                ? 'Update your brand information below.'
-                : 'Create your brand profile and connect with shoppers on ClothingPlace.'}
-            </Text>
-          </View>
-
-          <Text style={styles.sectionTitle}>
-            {editing
-              ? 'Brand Information'
-              : 'Tell us about your brand'}
+          <Text style={styles.screenTitle}>
+            {editing ? 'Edit Your Brand' : 'Become a Vendor'}
           </Text>
 
-          <Text style={styles.label}>BRAND NAME</Text>
+          <Text style={styles.screenSubtitle}>
+            {editing
+              ? 'Update your brand information below.'
+              : 'Create your brand profile and connect with shoppers on ClothingPlace.'}
+          </Text>
+
+          <Text style={styles.label}>Brand name</Text>
           <TextInput
             style={styles.input}
             value={brandName}
@@ -194,7 +182,7 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
             accessibilityLabel="Brand name"
           />
 
-          <Text style={styles.label}>BRAND DESCRIPTION</Text>
+          <Text style={styles.label}>Brand description</Text>
           <TextInput
             style={[styles.input, styles.textArea]}
             value={description}
@@ -207,7 +195,7 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
             accessibilityLabel="Brand description"
           />
 
-          <Text style={styles.label}>LOCATION</Text>
+          <Text style={styles.label}>Location</Text>
           <TextInput
             style={styles.input}
             value={location}
@@ -590,31 +578,14 @@ const styles = StyleSheet.create({
     color: '#111',
     textAlign: 'center',
   },
-  welcomeCard: {
-    backgroundColor: '#f7f7f7',
-    borderRadius: 20,
-    padding: 24,
-    alignItems: 'center',
-    marginBottom: 28,
-  },
-  storeIcon: {
-    fontSize: 42,
-    marginBottom: 12,
-  },
-  welcomeTitle: {
-    fontSize: 25,
-    fontWeight: '800',
-    color: '#111',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
   label: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#555',
-    letterSpacing: 0.6,
-    marginBottom: 8,
+    fontWeight: '600',
+    color: '#666666',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
     marginTop: 14,
+    marginBottom: 8,
   },
   input: {
     borderWidth: 1,
