@@ -138,8 +138,8 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#111" />
-        <Text style={styles.muted}>
+        <ActivityIndicator size="large" color="#111111" />
+        <Text style={styles.loadingText}>
           Loading vendor profile...
         </Text>
       </View>
@@ -404,13 +404,17 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
   },
   muted: {
     fontSize: 14,
     color: '#777',
     lineHeight: 22,
     textAlign: 'center',
+  },
+  loadingText: {
+    fontSize: 14,
+    color: '#666666',
+    marginTop: 12,
   },
   // Screen header — the standard block from the design guide
   screenTitle: {
@@ -424,48 +428,51 @@ const styles = StyleSheet.create({
     marginTop: 4,
     lineHeight: 20,
   },
+  // Brand identity card — same anatomy as the buyer identity card
   brandCard: {
     backgroundColor: '#f7f7f7',
-    borderRadius: 18,
-    padding: 20,
-    marginBottom: 28,
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 20,
   },
   brandHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   brandAvatar: {
-    width: 58,
-    height: 58,
-    borderRadius: 14,
-    backgroundColor: '#111',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#111111',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
   },
   brandInitial: {
-    color: '#fff',
-    fontSize: 27,
-    fontWeight: '800',
+    color: '#ffffff',
+    fontSize: 22,
+    fontWeight: '700',
   },
   brandInfo: {
     flex: 1,
+    marginLeft: 14,
+    justifyContent: 'center',
+    minHeight: 64,
   },
   brandName: {
     fontSize: 20,
-    fontWeight: '800',
-    color: '#111',
+    fontWeight: '700',
+    color: '#111111',
   },
   brandLocation: {
-    fontSize: 13,
-    color: '#777',
-    marginTop: 5,
+    fontSize: 14,
+    color: '#666666',
+    marginTop: 4,
   },
   brandDescription: {
     fontSize: 14,
-    color: '#444',
-    lineHeight: 21,
-    marginTop: 18,
+    color: '#666666',
+    lineHeight: 20,
+    marginTop: 16,
   },
   rolePill: {
     backgroundColor: '#111111',
