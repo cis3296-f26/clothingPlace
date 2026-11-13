@@ -20,9 +20,14 @@ type VendorProfile = {
   location: string;
 };
 
+type Props = {
+  // Extra space at the bottom, like room for the floating navbar
+  bottomPadding?: number;
+};
+
 const STORAGE_KEY = 'clothingplace:vendor-profile:demo-user';
 
-export default function VendorProfileScreen() {
+export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [vendor, setVendor] = useState<VendorProfile | null>(null);
@@ -149,7 +154,10 @@ export default function VendorProfileScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={styles.content}
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: bottomPadding },
+          ]}
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.welcomeCard}>
@@ -255,7 +263,10 @@ export default function VendorProfileScreen() {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[
+        styles.content,
+        { paddingBottom: bottomPadding },
+      ]}
     >
       <View style={styles.headerRow}>
         <Text style={styles.dashboardTitle}>
@@ -420,12 +431,11 @@ export default function VendorProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
   },
   content: {
     paddingHorizontal: 20,
     paddingTop: 24,
-    paddingBottom: 130,
   },
   center: {
     flex: 1,
