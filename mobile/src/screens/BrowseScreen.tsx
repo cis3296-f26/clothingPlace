@@ -1,6 +1,6 @@
-import { FlatList, StyleSheet } from 'react-native';
-import ProductCard from '../components/ProductCard';
-import { MOCK_PRODUCTS } from '../data/mockProducts';
+import { FlatList, StyleSheet } from "react-native";
+import ProductCard from "../components/ProductCard";
+import { MOCK_PRODUCTS } from "../data/mockProducts";
 
 export default function BrowseScreen() {
   return (
