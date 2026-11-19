@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { WebcamCaptureProps } from './WebcamCapture';
 
-// Size of the saved square photo, in pixels
-const PHOTO_SIZE = 512;
+// Width of the saved photo, in pixels (height follows the aspect)
+const PHOTO_WIDTH = 800;
 
 // Explains why the browser couldn't start the camera
 function messageFor(err: unknown): string {
@@ -23,7 +23,16 @@ function messageFor(err: unknown): string {
 // Web version: shows a live webcam preview and captures a square photo.
 // Desktop browsers ignore the "open the camera" hint on file inputs and show a
 // file picker, so on web we use the browser's camera directly instead.
-export default function WebcamCapture({ visible, onCapture, onClose }: WebcamCaptureProps) {
+export default function WebcamCapture({
+  visible,
+  onCapture,
+  onClose,
+  title = 'Take a photo',
+  aspect = 1,
+  facing = 'user',
+}: WebcamCaptureProps) {
+  const mirrored = facing === 'user';
+
   const [video, setVideo] = useState<HTMLVideoElement | null>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -43,7 +52,8 @@ export default function WebcamCapture({ visible, onCapture, onClose }: WebcamCap
     }
 
     navigator.mediaDevices
-      .getUserMedia({ video: { facingMode: 'user' }, audio: false })
+      // Laptops usually have only a front camera, which the browser uses either way
+      .getUserMedia({ video: { facingMode: facing }, audio: false })
       .then((s) => {
         started = s;
         if (cancelled) {
@@ -61,7 +71,7 @@ export default function WebcamCapture({ visible, onCapture, onClose }: WebcamCap
       started?.getTracks().forEach((t) => t.stop());
       setStream(null);
     };
-  }, [visible]);
+  }, [visible, facing]);
 
   // Connect the camera to the preview once both exist
   useEffect(() => {
@@ -74,20 +84,29 @@ export default function WebcamCapture({ visible, onCapture, onClose }: WebcamCap
   const capture = () => {
     if (!video || video.videoWidth === 0) return;
 
-    // Crop the middle square of the frame and mirror it to match the preview
-    const side = Math.min(video.videoWidth, video.videoHeight);
-    const sx = (video.videoWidth - side) / 2;
-    const sy = (video.videoHeight - side) / 2;
+    // Crop the largest centered area with the requested shape
+    const frameWidth = video.videoWidth;
+    const frameHeight = video.videoHeight;
+    const cropWidth = Math.min(frameWidth, frameHeight * aspect);
+    const cropHeight = cropWidth / aspect;
+    const sx = (frameWidth - cropWidth) / 2;
+    const sy = (frameHeight - cropHeight) / 2;
+
+    const outWidth = PHOTO_WIDTH;
+    const outHeight = Math.round(PHOTO_WIDTH / aspect);
 
     const canvas = document.createElement('canvas');
-    canvas.width = PHOTO_SIZE;
-    canvas.height = PHOTO_SIZE;
+    canvas.width = outWidth;
+    canvas.height = outHeight;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    ctx.translate(PHOTO_SIZE, 0);
-    ctx.scale(-1, 1);
-    ctx.drawImage(video, sx, sy, side, side, 0, 0, PHOTO_SIZE, PHOTO_SIZE);
+    // Selfies are saved mirrored to match the preview
+    if (mirrored) {
+      ctx.translate(outWidth, 0);
+      ctx.scale(-1, 1);
+    }
+    ctx.drawImage(video, sx, sy, cropWidth, cropHeight, 0, 0, outWidth, outHeight);
 
     // A data URI, so the photo still shows after the page reloads
     onCapture(canvas.toDataURL('image/jpeg', 0.85));
@@ -100,9 +119,9 @@ export default function WebcamCapture({ visible, onCapture, onClose }: WebcamCap
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <View style={styles.card}>
-          <Text style={styles.title}>Take a photo</Text>
+          <Text style={styles.title}>{title}</Text>
 
-          <View style={styles.preview}>
+          <View style={[styles.preview, { aspectRatio: aspect }]}>
             {error ? (
               <Text style={styles.errorText} accessibilityRole="alert">
                 {error}
@@ -115,7 +134,7 @@ export default function WebcamCapture({ visible, onCapture, onClose }: WebcamCap
                   playsInline
                   muted
                   aria-label="Camera preview"
-                  style={videoStyle}
+                  style={mirrored ? mirroredVideoStyle : videoStyle}
                 />
                 {!ready && (
                   <View style={styles.loading}>
@@ -147,14 +166,16 @@ export default function WebcamCapture({ visible, onCapture, onClose }: WebcamCap
   );
 }
 
-// Plain CSS for the <video> element: fill the square and mirror like a selfie camera
+// Plain CSS for the <video> element: fill the preview box
 const videoStyle = {
   width: '100%',
   height: '100%',
   objectFit: 'cover',
-  transform: 'scaleX(-1)',
   backgroundColor: '#111',
 } as const;
+
+// Front camera preview is mirrored, like a selfie camera
+const mirroredVideoStyle = { ...videoStyle, transform: 'scaleX(-1)' } as const;
 
 const styles = StyleSheet.create({
   backdrop: {
