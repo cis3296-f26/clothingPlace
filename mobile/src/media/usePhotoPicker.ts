@@ -10,18 +10,16 @@ export type PhotoPickerError = {
   canOpenSettings: boolean;
 };
 
-// Square crop, compressed a bit so photos stay small when we upload them later
-const PICKER_OPTIONS: ImagePicker.ImagePickerOptions = {
-  mediaTypes: ['images'],
-  allowsEditing: true,
-  aspect: [1, 1],
-  quality: 0.7,
+type PhotoPickerOptions = {
+  // Crop shape as [width, height]: [1, 1] for profile photos, [4, 3] for product photos
+  aspect?: [number, number];
 };
 
 // Takes a photo with the camera or picks one from the library.
 // Asks for camera permission first and explains what to do if it's denied.
 // Reusable anywhere we need a photo (profile picture, product listings, ...).
-export function usePhotoPicker() {
+export function usePhotoPicker({ aspect = [1, 1] }: PhotoPickerOptions = {}) {
+  const [aspectWidth, aspectHeight] = aspect;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<PhotoPickerError | null>(null);
 
@@ -47,10 +45,18 @@ export function usePhotoPicker() {
         }
       }
 
+      // Cropped to the requested shape, compressed a bit so photos stay small when we upload them later
+      const pickerOptions: ImagePicker.ImagePickerOptions = {
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [aspectWidth, aspectHeight],
+        quality: 0.7,
+      };
+
       const result =
         source === 'camera'
-          ? await ImagePicker.launchCameraAsync(PICKER_OPTIONS)
-          : await ImagePicker.launchImageLibraryAsync(PICKER_OPTIONS);
+          ? await ImagePicker.launchCameraAsync(pickerOptions)
+          : await ImagePicker.launchImageLibraryAsync(pickerOptions);
 
       if (result.canceled || !result.assets || result.assets.length === 0) {
         return null;
@@ -71,7 +77,7 @@ export function usePhotoPicker() {
     } finally {
       setBusy(false);
     }
-  }, []);
+  }, [aspectWidth, aspectHeight]);
 
   const clearError = useCallback(() => setError(null), []);
 
