@@ -1,0 +1,48 @@
+[
+  {
+    "categories": {
+      "name": "Outerwear"
+    },
+    "description": "Boxy fit with a worn-in wash.",
+    "id": "66666666-6666-6666-6666-666666666666",
+    "name": "Washed Denim Jacket",
+    "product_images": [
+      {
+        "position": 0,
+        "storage_path": "products/denim-jacket/look-1.jpg"
+      }
+    ],
+    "product_style_tags": [
+      {
+        "style_tags": {
+          "name": "vintage"
+        }
+      }
+    ],
+    "product_variants": [
+      {
+        "color": "Indigo",
+        "price_cents": 7800,
+        "size": "S",
+        "stock_qty": 4
+      },
+      {
+        "color": "Indigo",
+        "price_cents": 7800,
+        "size": "M",
+        "stock_qty": 0
+      },
+      {
+        "color": "Washed Black",
+        "price_cents": 8200,
+        "size": "L",
+        "stock_qty": 2
+      }
+    ],
+    "vendors": {
+      "id": "33333333-3333-3333-3333-333333333333",
+      "name": "Fishtown Thread Co.",
+      "neighborhood": "Fishtown"
+    }
+  }
+]
