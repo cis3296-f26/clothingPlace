@@ -16,6 +16,7 @@ import PhotoSourceSheet from '../components/PhotoSourceSheet';
 import WebcamCapture from '../components/WebcamCapture';
 import { PhotoSource, usePhotoPicker } from '../media/usePhotoPicker';
 import { useProfile } from '../profile/ProfileContext';
+import { useStyleQuiz } from '../quiz/StyleQuizContext';
 import { useSavedItems } from '../saved/SavedItemsContext';
 
 type Props = {
@@ -57,7 +58,11 @@ export default function ProfileScreen({ onOpenWishlist, onOpenProduct, bottomPad
   const { profile, hydrated, updateProfile, toggleStyleTag, setPhotoUri } = useProfile();
   const { items: savedItems, hydrated: savedHydrated } = useSavedItems();
   const { findProduct } = useCatalog();
+  const { openQuiz } = useStyleQuiz();
   const photoPicker = usePhotoPicker();
+
+  // Quiz picks can include styles the sample catalog doesn't have yet, so show those too.
+  const styleOptions = useMemo(() => unique([...STYLE_OPTIONS, ...profile.styleTags]), [profile.styleTags]);
 
   const [photoSheetVisible, setPhotoSheetVisible] = useState(false);
   const [webcamVisible, setWebcamVisible] = useState(false);
@@ -280,12 +285,17 @@ export default function ProfileScreen({ onOpenWishlist, onOpenProduct, bottomPad
 
       {/* Style preferences */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Your style</Text>
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>Your style</Text>
+          <Pressable onPress={openQuiz} hitSlop={8} accessibilityRole="button">
+            <Text style={styles.seeAll}>{profile.styleQuizCompleted ? 'Retake quiz' : 'Take style quiz'}</Text>
+          </Pressable>
+        </View>
         <Text style={styles.sectionSubtitle}>
           Pick the styles you like and we'll use them to recommend clothing from local brands.
         </Text>
         <View style={styles.chipWrap}>
-          {STYLE_OPTIONS.map((tag) => {
+          {styleOptions.map((tag) => {
             const selected = profile.styleTags.includes(tag);
             return (
               <Pressable

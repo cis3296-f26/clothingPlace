@@ -8,13 +8,16 @@ import {
   useState,
 } from 'react';
 import { loadProfile, persistProfile } from './profileStorage';
-import { defaultProfile, ShopperProfile } from './profileTypes';
+import { defaultProfile, ShopperProfile, StylePreferences } from './profileTypes';
 
 type ProfileContextValue = {
   profile: ShopperProfile;
   hydrated: boolean;
   updateProfile: (changes: Partial<Pick<ShopperProfile, 'displayName' | 'neighborhood'>>) => void;
   toggleStyleTag: (tag: string) => void;
+  // Called when the style quiz is finished; replaces the shopper's style tags.
+  completeStyleQuiz: (styleTags: string[], preferences: StylePreferences) => void;
+  setStyleQuizSkipped: (skipped: boolean) => void;
   // Pass null to remove the photo
   setPhotoUri: (uri: string | null) => void;
 };
@@ -66,13 +69,35 @@ export function ProfileProvider({ userId, children }: Props) {
     });
   }, []);
 
+  const completeStyleQuiz = useCallback((styleTags: string[], preferences: StylePreferences) => {
+    setProfile((prev) => ({
+      ...prev,
+      styleTags,
+      stylePreferences: preferences,
+      styleQuizCompleted: true,
+      styleQuizSkipped: false,
+    }));
+  }, []);
+
+  const setStyleQuizSkipped = useCallback((skipped: boolean) => {
+    setProfile((prev) => ({ ...prev, styleQuizSkipped: skipped }));
+  }, []);
+
   const setPhotoUri = useCallback((uri: string | null) => {
     setProfile((prev) => ({ ...prev, photoUri: uri }));
   }, []);
 
   const value = useMemo(
-    () => ({ profile, hydrated, updateProfile, toggleStyleTag, setPhotoUri }),
-    [profile, hydrated, updateProfile, toggleStyleTag, setPhotoUri],
+    () => ({
+      profile,
+      hydrated,
+      updateProfile,
+      toggleStyleTag,
+      completeStyleQuiz,
+      setStyleQuizSkipped,
+      setPhotoUri,
+    }),
+    [profile, hydrated, updateProfile, toggleStyleTag, completeStyleQuiz, setStyleQuizSkipped, setPhotoUri],
   );
 
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;

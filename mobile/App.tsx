@@ -20,6 +20,8 @@ import { CatalogProvider, useCatalog } from './src/catalog/CatalogContext';
 import BuyerVendorProfileScreen from './src/screens/BuyerVendorProfileScreen';
 import SavedItemsScreen from './src/screens/SavedItemsScreen';
 import { ProfileProvider } from './src/profile/ProfileContext';
+import { StyleQuizProvider } from './src/quiz/StyleQuizContext';
+import StyleQuizModal from './src/quiz/StyleQuizModal';
 import { SavedItemsProvider } from './src/saved/SavedItemsContext';
 
 const NAV_HEIGHT = 56;
@@ -129,7 +131,10 @@ export default function App() {
       <CatalogProvider>
         <SavedItemsProvider userId="demo-user">
           <ProfileProvider userId="demo-user">
-            <ClothingPlaceApp />
+            <StyleQuizProvider>
+              <ClothingPlaceApp />
+              <StyleQuizModal />
+            </StyleQuizProvider>
           </ProfileProvider>
         </SavedItemsProvider>
       </CatalogProvider>
