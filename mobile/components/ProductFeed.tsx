@@ -1,10 +1,17 @@
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useMemo } from "react";
 import ProductCard from "./ProductCard";
-import { Product, sampleProducts } from "../data/sampleProducts";
+import { Product } from "../data/sampleProducts";
 import { filterProducts } from "../utils/filterProducts";
+import { useCatalog } from "../src/catalog/CatalogContext";
 
-const recommended = sampleProducts.slice(0, 5);
 type ProductFeedProps = {
   query: string;
   onSelectProduct: (product: Product) => void;
@@ -22,7 +29,13 @@ export default function ProductFeed({
   onSelectProduct,
   bottomPadding = 20,
 }: ProductFeedProps) {
-  const results = useMemo(() => filterProducts(sampleProducts, query), [query]);
+  const { status, products, error, reload } = useCatalog();
+
+  const recommended = useMemo(() => products.slice(0, 5), [products]);
+  const results = useMemo(
+    () => filterProducts(products, query),
+    [products, query],
+  );
 
   const items = useMemo<FeedItem[]>(() => {
     const list: FeedItem[] = results.map((product) => ({ product }));
@@ -36,6 +49,30 @@ export default function ProductFeed({
   }, [results]);
 
   const trimmedQuery = query.trim();
+
+  if (status === "loading") {
+    return (
+      <View style={styles.state}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
+
+  if (status === "error") {
+    return (
+      <View style={styles.state}>
+        <Text style={styles.emptyText}>Couldn't load listings.</Text>
+        <Text style={styles.emptyHint}>{error}</Text>
+        <Pressable
+          style={styles.retry}
+          onPress={reload}
+          accessibilityRole="button"
+        >
+          <Text style={styles.retryText}>Try again</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   return (
     <FlatList
@@ -55,19 +92,23 @@ export default function ProductFeed({
       contentContainerStyle={[styles.content, { paddingBottom: bottomPadding }]}
       ListHeaderComponent={
         <View>
-          <Text style={styles.recHeading}>Recommended for your style</Text>
-          <FlatList
-            data={recommended}
-            keyExtractor={(p) => p.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <View style={styles.recCard}>
-                <ProductCard product={item} onPress={onSelectProduct} />
-              </View>
-            )}
-            style={styles.recRow}
-          />
+          {recommended.length > 0 && (
+            <>
+              <Text style={styles.recHeading}>Recommended for your style</Text>
+              <FlatList
+                data={recommended}
+                keyExtractor={(p) => p.id}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                renderItem={({ item }) => (
+                  <View style={styles.recCard}>
+                    <ProductCard product={item} onPress={onSelectProduct} />
+                  </View>
+                )}
+                style={styles.recRow}
+              />
+            </>
+          )}
           {results.length > 0 && (
             <Text style={styles.count}>
               {results.length} {results.length === 1 ? "listing" : "listings"}
@@ -146,5 +187,22 @@ const styles = StyleSheet.create({
   recCard: {
     width: 160,
     marginRight: 12,
+  },
+  state: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 32,
+  },
+  retry: {
+    marginTop: 16,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: "#111111",
+  },
+  retryText: {
+    color: "#ffffff",
+    fontWeight: "600",
   },
 });

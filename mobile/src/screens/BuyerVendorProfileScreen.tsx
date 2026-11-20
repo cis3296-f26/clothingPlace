@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import {
   Pressable,
@@ -18,56 +17,49 @@ type Props = {
   bottomPadding?: number;
 };
 
+const MODES: { key: ProfileMode; label: string }[] = [
+  { key: 'buyer', label: 'Buyer' },
+  { key: 'vendor', label: 'Vendor' },
+];
+
 export default function BuyerVendorProfileScreen({
   onOpenWishlist,
   onOpenProduct,
-  bottomPadding = 30,
+  bottomPadding = 20,
 }: Props) {
   const [mode, setMode] = useState<ProfileMode>('buyer');
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>My Profile</Text>
+      {/*
+        A single mode switch pinned above both screens. Each screen below
+        renders its own 28/700 header, so only one title is ever on screen.
+      */}
+      <View style={styles.switcherWrap}>
+        <View style={styles.track} accessibilityRole="tablist">
+          {MODES.map(({ key, label }) => {
+            const selected = mode === key;
 
-        <View style={styles.tabContainer}>
-          <Pressable
-            onPress={() => setMode('buyer')}
-            style={[
-              styles.tab,
-              mode === 'buyer' && styles.activeTab,
-            ]}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: mode === 'buyer' }}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                mode === 'buyer' && styles.activeTabText,
-              ]}
-            >
-              Buyer
-            </Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => setMode('vendor')}
-            style={[
-              styles.tab,
-              mode === 'vendor' && styles.activeTab,
-            ]}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: mode === 'vendor' }}
-          >
-            <Text
-              style={[
-                styles.tabText,
-                mode === 'vendor' && styles.activeTabText,
-              ]}
-            >
-              Vendor
-            </Text>
-          </Pressable>
+            return (
+              <Pressable
+                key={key}
+                onPress={() => setMode(key)}
+                style={[styles.tab, selected && styles.tabSelected]}
+                accessibilityRole="tab"
+                accessibilityState={{ selected }}
+                accessibilityLabel={`${label} profile`}
+              >
+                <Text
+                  style={[
+                    styles.tabText,
+                    selected && styles.tabTextSelected,
+                  ]}
+                >
+                  {label}
+                </Text>
+              </Pressable>
+            );
+          })}
         </View>
       </View>
 
@@ -79,7 +71,7 @@ export default function BuyerVendorProfileScreen({
             bottomPadding={bottomPadding}
           />
         ) : (
-          <VendorProfileScreen />
+          <VendorProfileScreen bottomPadding={bottomPadding} />
         )}
       </View>
     </View>
@@ -89,43 +81,34 @@ export default function BuyerVendorProfileScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
   },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 18,
-    paddingBottom: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+  switcherWrap: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
-  title: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#111',
-    marginBottom: 18,
-  },
-  tabContainer: {
+  track: {
     flexDirection: 'row',
     backgroundColor: '#f2f2f2',
-    borderRadius: 14,
+    borderRadius: 999,
     padding: 4,
   },
   tab: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 8,
     alignItems: 'center',
-    borderRadius: 11,
+    borderRadius: 999,
   },
-  activeTab: {
-    backgroundColor: '#111',
+  tabSelected: {
+    backgroundColor: '#111111',
   },
   tabText: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#777',
+    color: '#666666',
   },
-  activeTabText: {
-    color: '#fff',
+  tabTextSelected: {
+    color: '#ffffff',
   },
   content: {
     flex: 1,

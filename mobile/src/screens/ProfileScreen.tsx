@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { sampleProducts } from '../../data/sampleProducts';
+import { useCatalog } from '../catalog/CatalogContext';
 import PhotoSourceSheet from '../components/PhotoSourceSheet';
 import WebcamCapture from '../components/WebcamCapture';
 import { PhotoSource, usePhotoPicker } from '../media/usePhotoPicker';
@@ -55,6 +56,7 @@ function formatMemberSince(epochMs: number): string {
 export default function ProfileScreen({ onOpenWishlist, onOpenProduct, bottomPadding = 30 }: Props) {
   const { profile, hydrated, updateProfile, toggleStyleTag, setPhotoUri } = useProfile();
   const { items: savedItems, hydrated: savedHydrated } = useSavedItems();
+  const { findProduct } = useCatalog();
   const photoPicker = usePhotoPicker();
 
   const [photoSheetVisible, setPhotoSheetVisible] = useState(false);
@@ -166,7 +168,7 @@ export default function ProfileScreen({ onOpenWishlist, onOpenProduct, bottomPad
               value={draftName}
               onChangeText={setDraftName}
               placeholder="Your name"
-              placeholderTextColor="#aaa"
+              placeholderTextColor="#888"
               style={styles.input}
               maxLength={40}
               autoFocus
@@ -322,7 +324,7 @@ export default function ProfileScreen({ onOpenWishlist, onOpenProduct, bottomPad
         ) : (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recentRow}>
             {recentSaved.map(({ product }) => {
-              const imageUrl = sampleProducts.find((p) => p.id === product.id)?.imageUrl;
+              const imageUrl = findProduct(product.id)?.imageUrl;
               return (
                 <Pressable
                   key={product.id}
@@ -334,7 +336,7 @@ export default function ProfileScreen({ onOpenWishlist, onOpenProduct, bottomPad
                   {imageUrl ? (
                     <Image source={{ uri: imageUrl }} style={styles.recentImage} />
                   ) : (
-                    <View style={[styles.recentImage, { backgroundColor: product.colorHex || '#eee' }]} />
+                    <View style={[styles.recentImage, { backgroundColor: product.colorHex || '#f0f0f0' }]} />
                   )}
                   <Text style={styles.recentName} numberOfLines={1}>
                     {product.name}
@@ -356,7 +358,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 24,
   },
   center: {
@@ -365,7 +367,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    color: '#777',
+    color: '#666',
     marginTop: 12,
   },
 
@@ -376,7 +378,7 @@ const styles = StyleSheet.create({
   },
   screenTitle: {
     fontSize: 28,
-    fontWeight: '800',
+    fontWeight: '700',
     color: '#111',
   },
   editButton: {
@@ -472,7 +474,7 @@ const styles = StyleSheet.create({
   },
   neighborhood: {
     fontSize: 14,
-    color: '#555',
+    color: '#666',
     marginTop: 4,
   },
   metaRow: {
@@ -495,7 +497,7 @@ const styles = StyleSheet.create({
   },
   memberSince: {
     fontSize: 12,
-    color: '#888',
+    color: '#8a8a8a',
   },
 
   editForm: {
@@ -516,9 +518,9 @@ const styles = StyleSheet.create({
     marginTop: 6,
     borderWidth: 1,
     borderColor: '#ddd',
-    borderRadius: 10,
+    borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 12,
     fontSize: 16,
     color: '#111',
     backgroundColor: '#fff',
@@ -530,7 +532,7 @@ const styles = StyleSheet.create({
   },
   formButton: {
     paddingHorizontal: 18,
-    paddingVertical: 9,
+    paddingVertical: 10,
     borderRadius: 18,
     marginLeft: 8,
   },
@@ -554,15 +556,15 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     marginTop: 16,
-    gap: 10,
+    gap: 12,
   },
   statTile: {
     flex: 1,
     alignItems: 'center',
     paddingVertical: 14,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: '#eee',
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#e8e8e8',
   },
   statValue: {
     fontSize: 22,
@@ -571,7 +573,7 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 12,
-    color: '#777',
+    color: '#8a8a8a',
     marginTop: 2,
   },
 
@@ -589,10 +591,10 @@ const styles = StyleSheet.create({
     color: '#111',
   },
   sectionSubtitle: {
-    fontSize: 13,
-    color: '#777',
-    marginTop: 6,
-    lineHeight: 19,
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+    lineHeight: 20,
   },
   seeAll: {
     fontSize: 14,
@@ -621,7 +623,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontSize: 14,
-    color: '#333',
+    color: '#555',
   },
   chipTextSelected: {
     color: '#fff',
@@ -637,19 +639,19 @@ const styles = StyleSheet.create({
   },
   recentImage: {
     width: 120,
-    height: 150,
+    aspectRatio: 4 / 5,
     borderRadius: 12,
-    backgroundColor: '#eee',
+    backgroundColor: '#f0f0f0',
   },
   recentName: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '600',
     color: '#111',
     marginTop: 6,
   },
   recentPrice: {
-    fontSize: 13,
-    color: '#555',
-    marginTop: 2,
+    fontSize: 12,
+    color: '#8a8a8a',
+    marginTop: 3,
   },
 });

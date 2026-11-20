@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -14,15 +15,28 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import VendorPopupCard from '../../components/VendorPopupCard';
+import {
+  VendorListing,
+  formatPrice,
+  loadListings,
+  saveListings,
+} from '../vendor/listingsStorage';
+
 type VendorProfile = {
   brandName: string;
   description: string;
   location: string;
 };
 
+type Props = {
+  // Extra space at the bottom, like room for the floating navbar
+  bottomPadding?: number;
+};
+
 const STORAGE_KEY = 'clothingplace:vendor-profile:demo-user';
 
-export default function VendorProfileScreen() {
+export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [vendor, setVendor] = useState<VendorProfile | null>(null);
@@ -31,6 +45,38 @@ export default function VendorProfileScreen() {
   const [brandName, setBrandName] = useState('');
   const [description, setDescription] = useState('');
   const [location, setLocation] = useState('');
+
+  // The "upload a product" popup
+  const [uploadOpen, setUploadOpen] = useState(false);
+
+  // Products this vendor has published, newest first
+  const [listings, setListings] = useState<VendorListing[]>([]);
+  // Name of the product just published, for the confirmation banner
+  const [justPublished, setJustPublished] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    loadListings().then((saved) => {
+      if (active) setListings(saved);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Hide the confirmation after a few seconds
+  useEffect(() => {
+    if (!justPublished) return;
+    const timer = setTimeout(() => setJustPublished(null), 4000);
+    return () => clearTimeout(timer);
+  }, [justPublished]);
+
+  const publishListing = async (listing: VendorListing) => {
+    const updated = [listing, ...listings];
+    await saveListings(updated);
+    setListings(updated);
+    setJustPublished(listing.name);
+  };
 
   useEffect(() => {
     let active = true;
@@ -133,8 +179,8 @@ export default function VendorProfileScreen() {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#111" />
-        <Text style={styles.muted}>
+        <ActivityIndicator size="large" color="#111111" />
+        <Text style={styles.loadingText}>
           Loading vendor profile...
         </Text>
       </View>
@@ -149,63 +195,54 @@ export default function VendorProfileScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
-          contentContainerStyle={styles.content}
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: bottomPadding },
+          ]}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.welcomeCard}>
-            <Text style={styles.storeIcon}>
-              {'\uD83C\uDFEA'}
-            </Text>
-
-            <Text style={styles.welcomeTitle}>
-              {editing ? 'Edit Your Brand' : 'Become a Vendor'}
-            </Text>
-
-            <Text style={styles.muted}>
-              {editing
-                ? 'Update your brand information below.'
-                : 'Create your brand profile and connect with shoppers on ClothingPlace.'}
-            </Text>
-          </View>
-
-          <Text style={styles.sectionTitle}>
-            {editing
-              ? 'Brand Information'
-              : 'Tell us about your brand'}
+          <Text style={styles.screenTitle}>
+            {editing ? 'Edit Your Brand' : 'Become a Vendor'}
           </Text>
 
-          <Text style={styles.label}>BRAND NAME</Text>
+          <Text style={styles.screenSubtitle}>
+            {editing
+              ? 'Update your brand information below.'
+              : 'Create your brand profile and connect with shoppers on ClothingPlace.'}
+          </Text>
+
+          <Text style={styles.label}>Brand name</Text>
           <TextInput
             style={styles.input}
             value={brandName}
             onChangeText={setBrandName}
             placeholder="e.g. Urban Threads"
-            placeholderTextColor="#999"
+            placeholderTextColor="#888888"
             maxLength={60}
             autoCapitalize="words"
             accessibilityLabel="Brand name"
           />
 
-          <Text style={styles.label}>BRAND DESCRIPTION</Text>
+          <Text style={styles.label}>Brand description</Text>
           <TextInput
             style={[styles.input, styles.textArea]}
             value={description}
             onChangeText={setDescription}
             placeholder="Tell shoppers about your brand..."
-            placeholderTextColor="#999"
+            placeholderTextColor="#888888"
             multiline
             maxLength={300}
             textAlignVertical="top"
             accessibilityLabel="Brand description"
           />
 
-          <Text style={styles.label}>LOCATION</Text>
+          <Text style={styles.label}>Location</Text>
           <TextInput
             style={styles.input}
             value={location}
             onChangeText={setLocation}
             placeholder="e.g. Philadelphia, PA"
-            placeholderTextColor="#999"
+            placeholderTextColor="#888888"
             autoCapitalize="words"
             maxLength={80}
             accessibilityLabel="Brand location"
@@ -255,16 +292,24 @@ export default function VendorProfileScreen() {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[
+        styles.content,
+        { paddingBottom: bottomPadding },
+      ]}
     >
-      <View style={styles.headerRow}>
-        <Text style={styles.dashboardTitle}>
-          Vendor Dashboard
-        </Text>
-        <Text style={styles.headerIcon}>
-          {'\uD83C\uDFEA'}
-        </Text>
-      </View>
+      <Text style={styles.screenTitle}>Vendor Dashboard</Text>
+
+      <Text style={styles.screenSubtitle}>
+        Manage how your brand appears to shoppers.
+      </Text>
+
+      {justPublished && (
+        <View style={styles.publishedBanner} accessibilityRole="alert">
+          <Text style={styles.publishedText}>
+            {'\u2713'} Published "{justPublished}"
+          </Text>
+        </View>
+      )}
 
       {/* Brand identity card */}
       <View style={styles.brandCard}>
@@ -286,24 +331,20 @@ export default function VendorProfileScreen() {
             <Text style={styles.brandLocation}>
               {'\uD83D\uDCCD'} {vendor.location}
             </Text>
+
+            <View style={styles.brandMetaRow}>
+              <View style={styles.rolePill}>
+                <Text style={styles.rolePillText}>Vendor</Text>
+              </View>
+
+              <Text style={styles.brandStatus}>Set up</Text>
+            </View>
           </View>
         </View>
 
         <Text style={styles.brandDescription}>
           {vendor.description}
         </Text>
-
-        <View style={styles.statusRow}>
-          <Text style={styles.statusLabel}>
-            Your seller profile
-          </Text>
-
-          <View style={styles.statusPill}>
-            <Text style={styles.statusText}>
-              Set up
-            </Text>
-          </View>
-        </View>
       </View>
 
       {/* Statistics */}
@@ -312,34 +353,25 @@ export default function VendorProfileScreen() {
       </Text>
 
       <View style={styles.statsRow}>
-        <View style={styles.statCard}>
-          <Text style={styles.statIcon}>
-            {'\uD83D\uDC55'}
-          </Text>
-          <Text style={styles.statValue}>0</Text>
+        <View style={styles.statTile}>
+          <Text style={styles.statValue}>{listings.length}</Text>
           <Text style={styles.statLabel}>Listings</Text>
         </View>
 
-        <View style={styles.statCard}>
-          <Text style={styles.statIcon}>
-            {'\uD83D\uDCE6'}
-          </Text>
+        <View style={styles.statTile}>
           <Text style={styles.statValue}>0</Text>
           <Text style={styles.statLabel}>Orders</Text>
         </View>
 
-        <View style={styles.statCard}>
-          <Text style={styles.statIcon}>
-            {'\uD83D\uDCB0'}
-          </Text>
+        <View style={styles.statTile}>
           <Text style={styles.statValue}>$0</Text>
           <Text style={styles.statLabel}>Sales</Text>
         </View>
       </View>
 
       <Text style={styles.demoNote}>
-        Demo placeholders — live listings, orders,
-        and sales are not connected yet.
+        Listings are saved on this device. Orders and
+        sales are demo placeholders and not connected yet.
       </Text>
 
       {/* Management section */}
@@ -349,26 +381,47 @@ export default function VendorProfileScreen() {
 
       <View style={styles.managementCard}>
         <View style={styles.managementRow}>
-          <Text style={styles.managementIcon}>
-            {'\uD83D\uDCE6'}
-          </Text>
           <View style={styles.managementInfo}>
             <Text style={styles.managementTitle}>
               Your Products
             </Text>
             <Text style={styles.managementSubtitle}>
-              View your clothing listings
+              {listings.length === 0
+                ? 'Nothing published yet'
+                : `${listings.length} published`}
             </Text>
           </View>
-          <Text style={styles.comingSoon}>Soon</Text>
         </View>
+
+        {listings.map((listing) => (
+          <View key={listing.id} style={styles.listingRow}>
+            <Image
+              source={{ uri: listing.photoUri }}
+              style={styles.listingPhoto}
+              accessibilityIgnoresInvertColors
+            />
+            <View style={styles.listingInfo}>
+              <Text style={styles.listingName} numberOfLines={1}>
+                {listing.name}
+              </Text>
+              <Text style={styles.listingMeta} numberOfLines={1}>
+                {listing.category}
+              </Text>
+            </View>
+            <Text style={styles.listingPrice}>
+              {formatPrice(listing.priceCents)}
+            </Text>
+          </View>
+        ))}
 
         <View style={styles.divider} />
 
-        <View style={styles.managementRow}>
-          <Text style={styles.managementIcon}>
-            {'\u2795'}
-          </Text>
+        <Pressable
+          style={styles.managementRow}
+          onPress={() => setUploadOpen(true)}
+          accessibilityRole="button"
+          accessibilityLabel="Add a product"
+        >
           <View style={styles.managementInfo}>
             <Text style={styles.managementTitle}>
               Add a Product
@@ -377,8 +430,8 @@ export default function VendorProfileScreen() {
               Create a new clothing listing
             </Text>
           </View>
-          <Text style={styles.comingSoon}>Soon</Text>
-        </View>
+          <Text style={styles.chevron}>{'\u203A'}</Text>
+        </Pressable>
 
         <View style={styles.divider} />
 
@@ -388,9 +441,6 @@ export default function VendorProfileScreen() {
           accessibilityRole="button"
           accessibilityLabel="Edit brand information"
         >
-          <Text style={styles.managementIcon}>
-            {'\u270F\uFE0F'}
-          </Text>
           <View style={styles.managementInfo}>
             <Text style={styles.managementTitle}>
               Edit Brand Information
@@ -399,7 +449,7 @@ export default function VendorProfileScreen() {
               Update your name, location, or description
             </Text>
           </View>
-          <Text style={styles.arrow}>{'\u203A'}</Text>
+          <Text style={styles.chevron}>{'\u203A'}</Text>
         </Pressable>
       </View>
 
@@ -407,12 +457,20 @@ export default function VendorProfileScreen() {
         <Text style={styles.infoTitle}>
           Keep Growing Your Brand
         </Text>
-        <Text style={styles.muted}>
+        <Text style={styles.infoBody}>
           Product uploads, order tracking, and sales
           management can be connected as ClothingPlace
           expands its marketplace features.
         </Text>
       </View>
+
+      {/* Modal renders in its own layer, so it can sit inside the ScrollView
+          without affecting the dashboard's layout. */}
+      <VendorPopupCard
+        visible={uploadOpen}
+        onClose={() => setUploadOpen(false)}
+        onPublish={publishListing}
+      />
     </ScrollView>
   );
 }
@@ -420,245 +478,268 @@ export default function VendorProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
   },
   content: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 24,
-    paddingBottom: 130,
   },
   center: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 20,
   },
-  muted: {
+  loadingText: {
     fontSize: 14,
-    color: '#777',
-    lineHeight: 22,
-    textAlign: 'center',
+    color: '#666666',
+    marginTop: 12,
   },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 22,
-  },
-  dashboardTitle: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: '#111',
-    flex: 1,
-  },
-  headerIcon: {
+  // Screen header — the standard block from the design guide
+  screenTitle: {
     fontSize: 28,
-    marginLeft: 12,
+    fontWeight: '700',
+    color: '#111111',
   },
+  screenSubtitle: {
+    fontSize: 14,
+    color: '#666666',
+    marginTop: 4,
+    lineHeight: 20,
+  },
+  // Brand identity card — same anatomy as the buyer identity card
   brandCard: {
     backgroundColor: '#f7f7f7',
-    borderRadius: 18,
-    padding: 20,
-    marginBottom: 28,
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 20,
   },
   brandHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   brandAvatar: {
-    width: 58,
-    height: 58,
-    borderRadius: 14,
-    backgroundColor: '#111',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#111111',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
   },
   brandInitial: {
-    color: '#fff',
-    fontSize: 27,
-    fontWeight: '800',
+    color: '#ffffff',
+    fontSize: 22,
+    fontWeight: '700',
   },
   brandInfo: {
     flex: 1,
+    marginLeft: 14,
+    justifyContent: 'center',
+    minHeight: 64,
   },
   brandName: {
     fontSize: 20,
-    fontWeight: '800',
-    color: '#111',
+    fontWeight: '700',
+    color: '#111111',
   },
   brandLocation: {
-    fontSize: 13,
-    color: '#777',
-    marginTop: 5,
+    fontSize: 14,
+    color: '#666666',
+    marginTop: 4,
   },
   brandDescription: {
     fontSize: 14,
-    color: '#444',
-    lineHeight: 21,
-    marginTop: 18,
+    color: '#666666',
+    lineHeight: 20,
+    marginTop: 16,
   },
-  statusRow: {
-    borderTopWidth: 1,
-    borderTopColor: '#e4e4e4',
-    marginTop: 18,
-    paddingTop: 16,
+  rolePill: {
+    backgroundColor: '#111111',
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginRight: 8,
+  },
+  rolePillText: {
+    color: '#ffffff',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  brandMetaRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap',
+    marginTop: 8,
   },
-  statusLabel: {
+  brandStatus: {
     fontSize: 12,
-    color: '#777',
+    color: '#8a8a8a',
   },
-  statusPill: {
-    backgroundColor: '#e6f4e9',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-  },
-  statusText: {
-    color: '#257844',
-    fontSize: 12,
-    fontWeight: '700',
-  },
+  // Sections
   sectionTitle: {
-    fontSize: 19,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#111',
+    color: '#111111',
+    marginTop: 28,
     marginBottom: 16,
   },
+  // Stat tiles — outlines, no fill, no shadow
   statsRow: {
     flexDirection: 'row',
-    gap: 10,
+    gap: 12,
   },
-  statCard: {
+  statTile: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: '#eee',
-    borderRadius: 14,
-    paddingVertical: 18,
     alignItems: 'center',
-  },
-  statIcon: {
-    fontSize: 21,
-    marginBottom: 8,
+    paddingVertical: 14,
+    borderRadius: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#e8e8e8',
   },
   statValue: {
-    fontSize: 23,
+    fontSize: 22,
     fontWeight: '800',
-    color: '#111',
+    color: '#111111',
   },
   statLabel: {
     fontSize: 12,
-    color: '#777',
-    marginTop: 4,
+    color: '#8a8a8a',
+    marginTop: 2,
   },
   demoNote: {
-    fontSize: 11,
-    color: '#999',
-    marginTop: 10,
-    marginBottom: 30,
-    lineHeight: 17,
+    fontSize: 13,
+    color: '#777777',
+    lineHeight: 18,
+    marginTop: 12,
+    marginBottom: 4,
   },
+
+  // Management list
   managementCard: {
-    borderWidth: 1,
-    borderColor: '#eee',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#e8e8e8',
     borderRadius: 16,
     paddingHorizontal: 16,
-    marginBottom: 26,
+    marginBottom: 28,
   },
   managementRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 18,
-  },
-  managementIcon: {
-    fontSize: 22,
-    width: 36,
+    paddingVertical: 16,
   },
   managementInfo: {
     flex: 1,
-    paddingRight: 6,
+    paddingRight: 8,
   },
   managementTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#111',
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111111',
   },
   managementSubtitle: {
     fontSize: 12,
-    color: '#888',
-    marginTop: 4,
-    lineHeight: 17,
+    color: '#8a8a8a',
+    marginTop: 3,
+    lineHeight: 16,
+  },
+  publishedBanner: {
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    backgroundColor: '#111111',
+  },
+  publishedText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  listingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingBottom: 14,
+  },
+  listingPhoto: {
+    width: 56,
+    height: 42,
+    borderRadius: 8,
+    backgroundColor: '#f0f0f0',
+  },
+  listingInfo: {
+    flex: 1,
+  },
+  listingName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111111',
+  },
+  listingMeta: {
+    fontSize: 13,
+    color: '#8a8a8a',
+    marginTop: 2,
+  },
+  listingPrice: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111111',
   },
   comingSoon: {
     fontSize: 12,
-    color: '#999',
+    color: '#999999',
   },
-  arrow: {
-    fontSize: 27,
-    color: '#999',
+  chevron: {
+    fontSize: 22,
+    color: '#999999',
   },
   divider: {
-    height: 1,
-    backgroundColor: '#eee',
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: '#e8e8e8',
   },
+
   infoCard: {
     backgroundColor: '#f7f7f7',
     borderRadius: 16,
-    padding: 20,
+    padding: 16,
     gap: 8,
   },
   infoTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#111',
+    color: '#111111',
     textAlign: 'center',
   },
-  welcomeCard: {
-    backgroundColor: '#f7f7f7',
-    borderRadius: 20,
-    padding: 24,
-    alignItems: 'center',
-    marginBottom: 28,
-  },
-  storeIcon: {
-    fontSize: 42,
-    marginBottom: 12,
-  },
-  welcomeTitle: {
-    fontSize: 25,
-    fontWeight: '800',
-    color: '#111',
-    marginBottom: 10,
+  infoBody: {
+    fontSize: 14,
+    color: '#666666',
+    lineHeight: 20,
     textAlign: 'center',
   },
   label: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#555',
-    letterSpacing: 0.6,
-    marginBottom: 8,
+    fontWeight: '600',
+    color: '#666666',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
     marginTop: 14,
+    marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#dddddd',
     borderRadius: 12,
-    backgroundColor: '#fff',
-    paddingHorizontal: 14,
-    paddingVertical: 13,
-    fontSize: 15,
-    color: '#111',
+    backgroundColor: '#ffffff',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#111111',
   },
   textArea: {
-    minHeight: 110,
+    minHeight: 112,
   },
   primaryButton: {
-    backgroundColor: '#111',
-    borderRadius: 14,
-    paddingVertical: 17,
+    backgroundColor: '#111111',
+    borderRadius: 12,
+    paddingVertical: 14,
     alignItems: 'center',
     marginTop: 28,
   },
@@ -666,23 +747,26 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   primaryButtonText: {
-    color: '#fff',
-    fontSize: 16,
+    color: '#ffffff',
+    fontSize: 15,
     fontWeight: '700',
   },
   secondaryButton: {
-    marginTop: 12,
+    borderWidth: 1.5,
+    borderColor: '#111111',
+    borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
+    marginTop: 12,
   },
   secondaryButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
+    color: '#111111',
+    fontSize: 15,
+    fontWeight: '700',
   },
   footerNote: {
-    fontSize: 12,
-    color: '#888',
+    fontSize: 13,
+    color: '#777777',
     textAlign: 'center',
     lineHeight: 18,
     marginTop: 16,
