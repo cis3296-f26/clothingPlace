@@ -13,10 +13,9 @@
  *   `accent` stays reserved for the wishlist heart.
  * - Field labels use the 12/600 uppercase label spec; chips use the pill spec.
  *
- * Scope: UI and the opening view. Publishing is not wired up yet — the
- * button renders and enables on a complete form, but the upload call and the
- *
- * Scope: sheet shell, header and the fields committed so far.
+ * Publishing: the button enables once photo, name, price and category are
+ * filled in, then hands the listing to `onPublish`. The dashboard saves it on
+ * this device for now; it should go to Supabase once the app is connected.
  */
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -34,15 +33,20 @@ import {
 } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
+import PhotoSourceSheet from '../src/components/PhotoSourceSheet';
+import WebcamCapture from '../src/components/WebcamCapture';
+import { PhotoSource, usePhotoPicker } from '../src/media/usePhotoPicker';
+import type { VendorListing } from '../src/vendor/listingsStorage';
+
 type Props = {
   visible: boolean;
   onClose: () => void;
-  /**
-   * Swap in `expo-image-picker` here. Without it the dropzone walks through
-   * demo photos so the design stays explorable.
-   */
-  onPickPhoto?: () => void;
+  // Called with the finished listing when the vendor taps Publish
+  onPublish: (listing: VendorListing) => Promise<void> | void;
 };
+
+// Product photos display at 4:3 in this sheet, so photos are cropped to match
+const PHOTO_ASPECT: [number, number] = [4, 3];
 
 const CATEGORIES = ['Outerwear', 'Tops', 'Bottoms', 'Accessories', 'Shoes'];
 
@@ -52,12 +56,6 @@ const STYLE_TAGS = [
   'minimalist',
   'workwear',
   'athleisure',
-];
-
-const DEMO_PHOTOS = [
-  'https://images.unsplash.com/photo-1543076447-215ad9ba6923?w=600&h=800&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1576871337622-98d48d1cf531?w=600&h=800&fit=crop&q=80',
-  'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&h=800&fit=crop&q=80',
 ];
 
 // Keeps the price field to something parseable: digits, one dot, 2 decimals.
@@ -73,7 +71,7 @@ function normalizePrice(input: string): string {
 export default function VendorPopupCard({
   visible,
   onClose,
-  onPickPhoto,
+  onPublish,
 }: Props) {
 
   const [shown, setShown] = useState(visible);
@@ -87,7 +85,10 @@ export default function VendorPopupCard({
 
   const [focusedField, setFocusedField] = useState<string | null>(null);
 
-  const demoPhotoIndex = useRef(0);
+  // Camera and photo library
+  const photoPicker = usePhotoPicker({ aspect: PHOTO_ASPECT });
+  const [photoSheetVisible, setPhotoSheetVisible] = useState(false);
+  const [webcamVisible, setWebcamVisible] = useState(false);
 
   // Sheet motion — same spec as ProductDetailSheet.
   const progress = useRef(new Animated.Value(0)).current;
@@ -145,19 +146,69 @@ export default function VendorPopupCard({
     category !== null,
   ].filter(Boolean).length;
 
+  // What's still needed before the listing can be published
+  const missing = [
+    photoUri === null && 'a photo',
+    trimmedName.length === 0 && 'a name',
+    priceCents <= 0 && 'a price',
+    category === null && 'a category',
+  ].filter((item): item is string => typeof item === 'string');
+
+  const canPublish = missing.length === 0;
+  const [publishing, setPublishing] = useState(false);
+
+  const resetForm = () => {
+    setPhotoUri(null);
+    setName('');
+    setPriceText('');
+    setCategory(null);
+    setStyleTags([]);
+    setDescription('');
+    photoPicker.clearError();
+  };
+
+  const handlePublish = async () => {
+    if (!canPublish || publishing || photoUri === null || category === null) return;
+
+    setPublishing(true);
+    try {
+      await onPublish({
+        id: `${Date.now()}`,
+        photoUri,
+        name: trimmedName,
+        priceCents,
+        category,
+        styleTags,
+        description: description.trim(),
+        createdAt: Date.now(),
+      });
+      resetForm();
+      onClose();
+    } catch (error) {
+      console.warn('Could not publish listing:', error);
+    } finally {
+      setPublishing(false);
+    }
+  };
+
   const requestClose = () => {
     onClose();
   };
 
   const handlePhotoPress = () => {
-    if (onPickPhoto) {
-      onPickPhoto();
+    photoPicker.clearError();
+    setPhotoSheetVisible(true);
+  };
+
+  const choosePhoto = async (source: PhotoSource) => {
+    // Desktop browsers open a file picker for "camera", so use the webcam screen instead
+    if (source === 'camera' && Platform.OS === 'web') {
+      setWebcamVisible(true);
       return;
     }
 
-    const next = DEMO_PHOTOS[demoPhotoIndex.current % DEMO_PHOTOS.length];
-    demoPhotoIndex.current += 1;
-    setPhotoUri(next);
+    const uri = await photoPicker.pickPhoto(source);
+    if (uri) setPhotoUri(uri);
   };
 
   const toggleTag = (tag: string) => {
@@ -297,12 +348,41 @@ export default function VendorPopupCard({
                 accessibilityRole="button"
                 accessibilityLabel="Add a product photo"
               >
-                <Text style={styles.dropzoneGlyph}>+</Text>
+                <Text style={styles.dropzoneGlyph}>
+                  {photoPicker.busy ? '…' : '+'}
+                </Text>
                 <Text style={styles.dropzoneTitle}>Add a photo</Text>
                 <Text style={styles.dropzoneHint}>
-                  One clean shot of the piece
+                  Use your camera or photo library
                 </Text>
               </Pressable>
+            )}
+
+            {/* Camera permission or picker problem */}
+            {photoPicker.error && (
+              <View style={styles.photoError} accessibilityRole="alert">
+                <Text style={styles.photoErrorText}>
+                  {photoPicker.error.message}
+                </Text>
+                <View style={styles.photoErrorActions}>
+                  {photoPicker.error.canOpenSettings && (
+                    <Pressable
+                      onPress={photoPicker.openSettings}
+                      accessibilityRole="button"
+                      hitSlop={8}
+                    >
+                      <Text style={styles.photoErrorLink}>Open Settings</Text>
+                    </Pressable>
+                  )}
+                  <Pressable
+                    onPress={photoPicker.clearError}
+                    accessibilityRole="button"
+                    hitSlop={8}
+                  >
+                    <Text style={styles.photoErrorDismiss}>Dismiss</Text>
+                  </Pressable>
+                </View>
+              </View>
             )}
 
             <Text style={styles.label}>Product name</Text>
@@ -419,8 +499,55 @@ export default function VendorPopupCard({
             />
 
           </ScrollView>
+
+          {/* Publish — disabled until the four required fields are done */}
+          <View style={styles.footer}>
+            <Text
+              style={[styles.footerHint, canPublish && styles.footerReady]}
+              accessibilityLiveRegion="polite"
+            >
+              {canPublish
+                ? 'Ready to publish'
+                : `Still need ${missing.join(', ')}`}
+            </Text>
+            <Pressable
+              onPress={handlePublish}
+              disabled={!canPublish || publishing}
+              style={({ pressed }) => [
+                styles.publishButton,
+                (!canPublish || publishing) && styles.publishDisabled,
+                pressed && canPublish && styles.pressed,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Publish listing"
+              accessibilityState={{ disabled: !canPublish || publishing }}
+            >
+              <Text style={styles.publishText}>
+                {publishing ? 'Publishing…' : 'Publish'}
+              </Text>
+            </Pressable>
+          </View>
         </Animated.View>
       </KeyboardAvoidingView>
+
+      {/* Rendered inside this Modal so they stack on top of the upload sheet */}
+      <PhotoSourceSheet
+        visible={photoSheetVisible}
+        title="Product photo"
+        hasPhoto={photoUri !== null}
+        onSelect={choosePhoto}
+        onRemove={() => setPhotoUri(null)}
+        onClose={() => setPhotoSheetVisible(false)}
+      />
+
+      <WebcamCapture
+        visible={webcamVisible}
+        title="Photograph your product"
+        aspect={PHOTO_ASPECT[0] / PHOTO_ASPECT[1]}
+        facing="environment"
+        onCapture={setPhotoUri}
+        onClose={() => setWebcamVisible(false)}
+      />
     </Modal>
   );
 }
@@ -498,6 +625,41 @@ const styles = StyleSheet.create({
   body: {
     padding: 20,
   },
+  // Footer — stays below the scrolling form
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#e8e8e8',
+    backgroundColor: '#ffffff',
+  },
+  footerHint: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#8a8a8a',
+  },
+  footerReady: {
+    color: '#111111',
+    fontWeight: '600',
+  },
+  publishButton: {
+    paddingHorizontal: 22,
+    paddingVertical: 12,
+    borderRadius: 999,
+    backgroundColor: '#111111',
+  },
+  publishDisabled: {
+    backgroundColor: '#cccccc',
+  },
+  publishText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#ffffff',
+  },
   // Progress
   progressRow: {
     flexDirection: 'row',
@@ -566,6 +728,31 @@ const styles = StyleSheet.create({
   dropzoneHint: {
     fontSize: 12,
     color: '#8a8a8a',
+  },
+  photoError: {
+    marginTop: 10,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: '#fff4e5',
+  },
+  photoErrorText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: '#6b4500',
+  },
+  photoErrorActions: {
+    flexDirection: 'row',
+    gap: 20,
+    marginTop: 8,
+  },
+  photoErrorLink: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#111111',
+  },
+  photoErrorDismiss: {
+    fontSize: 13,
+    color: '#666666',
   },
   photoClip: {
     borderRadius: 16,

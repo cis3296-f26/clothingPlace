@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -15,6 +16,12 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import VendorPopupCard from '../../components/VendorPopupCard';
+import {
+  VendorListing,
+  formatPrice,
+  loadListings,
+  saveListings,
+} from '../vendor/listingsStorage';
 
 type VendorProfile = {
   brandName: string;
@@ -41,6 +48,35 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
 
   // The "upload a product" popup
   const [uploadOpen, setUploadOpen] = useState(false);
+
+  // Products this vendor has published, newest first
+  const [listings, setListings] = useState<VendorListing[]>([]);
+  // Name of the product just published, for the confirmation banner
+  const [justPublished, setJustPublished] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    loadListings().then((saved) => {
+      if (active) setListings(saved);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Hide the confirmation after a few seconds
+  useEffect(() => {
+    if (!justPublished) return;
+    const timer = setTimeout(() => setJustPublished(null), 4000);
+    return () => clearTimeout(timer);
+  }, [justPublished]);
+
+  const publishListing = async (listing: VendorListing) => {
+    const updated = [listing, ...listings];
+    await saveListings(updated);
+    setListings(updated);
+    setJustPublished(listing.name);
+  };
 
   useEffect(() => {
     let active = true;
@@ -267,6 +303,14 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
         Manage how your brand appears to shoppers.
       </Text>
 
+      {justPublished && (
+        <View style={styles.publishedBanner} accessibilityRole="alert">
+          <Text style={styles.publishedText}>
+            {'\u2713'} Published "{justPublished}"
+          </Text>
+        </View>
+      )}
+
       {/* Brand identity card */}
       <View style={styles.brandCard}>
         <View style={styles.brandHeader}>
@@ -310,7 +354,7 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
 
       <View style={styles.statsRow}>
         <View style={styles.statTile}>
-          <Text style={styles.statValue}>0</Text>
+          <Text style={styles.statValue}>{listings.length}</Text>
           <Text style={styles.statLabel}>Listings</Text>
         </View>
 
@@ -326,8 +370,8 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
       </View>
 
       <Text style={styles.demoNote}>
-        Demo placeholders — live listings, orders,
-        and sales are not connected yet.
+        Listings are saved on this device. Orders and
+        sales are demo placeholders and not connected yet.
       </Text>
 
       {/* Management section */}
@@ -342,11 +386,33 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
               Your Products
             </Text>
             <Text style={styles.managementSubtitle}>
-              View your clothing listings
+              {listings.length === 0
+                ? 'Nothing published yet'
+                : `${listings.length} published`}
             </Text>
           </View>
-          <Text style={styles.comingSoon}>Soon</Text>
         </View>
+
+        {listings.map((listing) => (
+          <View key={listing.id} style={styles.listingRow}>
+            <Image
+              source={{ uri: listing.photoUri }}
+              style={styles.listingPhoto}
+              accessibilityIgnoresInvertColors
+            />
+            <View style={styles.listingInfo}>
+              <Text style={styles.listingName} numberOfLines={1}>
+                {listing.name}
+              </Text>
+              <Text style={styles.listingMeta} numberOfLines={1}>
+                {listing.category}
+              </Text>
+            </View>
+            <Text style={styles.listingPrice}>
+              {formatPrice(listing.priceCents)}
+            </Text>
+          </View>
+        ))}
 
         <View style={styles.divider} />
 
@@ -403,6 +469,7 @@ export default function VendorProfileScreen({ bottomPadding = 20 }: Props) {
       <VendorPopupCard
         visible={uploadOpen}
         onClose={() => setUploadOpen(false)}
+        onPublish={publishListing}
       />
     </ScrollView>
   );
@@ -573,6 +640,48 @@ const styles = StyleSheet.create({
     color: '#8a8a8a',
     marginTop: 3,
     lineHeight: 16,
+  },
+  publishedBanner: {
+    marginTop: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    backgroundColor: '#111111',
+  },
+  publishedText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#ffffff',
+  },
+  listingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingBottom: 14,
+  },
+  listingPhoto: {
+    width: 56,
+    height: 42,
+    borderRadius: 8,
+    backgroundColor: '#f0f0f0',
+  },
+  listingInfo: {
+    flex: 1,
+  },
+  listingName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#111111',
+  },
+  listingMeta: {
+    fontSize: 13,
+    color: '#8a8a8a',
+    marginTop: 2,
+  },
+  listingPrice: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#111111',
   },
   comingSoon: {
     fontSize: 12,

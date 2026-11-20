@@ -49,14 +49,17 @@ export default function PhotoSourceSheet({
       onRequestClose={onClose}
       onDismiss={runPendingAction}
     >
-      <Pressable
-        style={styles.backdrop}
-        onPress={onClose}
-        accessibilityRole="button"
-        accessibilityLabel="Close"
-      >
-        {/* Stops taps on the sheet from closing it */}
-        <Pressable style={styles.sheet} onPress={() => {}}>
+      <View style={styles.backdrop}>
+        {/* Tapping outside the sheet closes it. It's a separate layer behind the
+            sheet, not a wrapper, because on web a button can't contain other buttons. */}
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+          accessibilityRole="button"
+          accessibilityLabel="Close"
+        />
+
+        <View style={styles.sheet}>
           <Text style={styles.title}>{title}</Text>
 
           <Pressable
@@ -99,8 +102,8 @@ export default function PhotoSourceSheet({
           <Pressable style={styles.cancelButton} onPress={onClose} accessibilityRole="button">
             <Text style={styles.cancelText}>Cancel</Text>
           </Pressable>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 }
