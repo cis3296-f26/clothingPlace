@@ -55,10 +55,11 @@ const CARD_RADIUS = 16;
 const styles = StyleSheet.create({
   card: {
     flex: 1,
-    margin: 6,
-    borderRadius: 12,
+    borderRadius: CARD_RADIUS,
+    // White background so the shadow shows up. No overflow: "hidden" here --
+    // the inner clip view does the clipping, and hiding overflow on this view
+    // would clip the shadow itself on iOS.
     backgroundColor: "#fff",
-    overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -113,10 +114,11 @@ const styles = StyleSheet.create({
     color: "#8a8a8a",
   },
   price: {
-    marginTop: "4",
+    // Pins the price to the bottom of the card so it lines up across the row
+    marginTop: "auto",
     paddingTop: 10,
     fontSize: 16,
     fontWeight: "700",
-    color: "#1a1a1a1",
+    color: "#1a1a1a",
   },
 });
