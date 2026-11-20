@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native';
 
-import { sampleProducts } from '../../data/sampleProducts';
+import { useCatalog } from '../catalog/CatalogContext';
 import { useSavedItems } from '../saved/SavedItemsContext';
 import type { SavedItem } from '../types/product';
 
@@ -36,6 +36,7 @@ export default function SavedItemsScreen({
   bottomPadding = 20,
 }: Props) {
   const { items, hydrated, remove } = useSavedItems();
+  const { findProduct } = useCatalog();
 
   // Pad to a full final row so the last card keeps its grid width
   const rows = useMemo<ListRow[]>(() => {
@@ -146,11 +147,7 @@ export default function SavedItemsScreen({
           const { item } = row;
           const product = item.product;
 
-          const catalogProduct = sampleProducts.find(
-            (p) => p.id === product.id,
-          );
-
-          const imageUrl = catalogProduct?.imageUrl;
+          const imageUrl = findProduct(product.id)?.imageUrl;
 
           return (
             <View style={styles.card}>

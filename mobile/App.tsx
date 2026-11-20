@@ -14,11 +14,9 @@ import ProductDetailSheet from './components/ProductDetailSheet';
 import ProductFeed from './components/ProductFeed';
 import SearchBar from './components/SearchBar';
 
-import {
-  Product,
-  sampleProducts,
-} from './data/sampleProducts';
+import type { Product } from './data/sampleProducts';
 
+import { CatalogProvider, useCatalog } from './src/catalog/CatalogContext';
 import BuyerVendorProfileScreen from './src/screens/BuyerVendorProfileScreen';
 import SavedItemsScreen from './src/screens/SavedItemsScreen';
 import { ProfileProvider } from './src/profile/ProfileContext';
@@ -34,14 +32,13 @@ function ClothingPlaceApp() {
     useState<Product | null>(null);
 
   const insets = useSafeAreaInsets();
+  const { findProduct } = useCatalog();
 
   const navBottom = Math.max(insets.bottom, NAV_MARGIN);
   const feedBottomPadding = navBottom + NAV_HEIGHT + 20;
 
   const openProduct = (productId: string) => {
-    const product = sampleProducts.find(
-      (item) => item.id === productId,
-    );
+    const product = findProduct(productId);
 
     if (product) {
       setSelectedProduct(product);
@@ -129,11 +126,13 @@ function ClothingPlaceApp() {
 export default function App() {
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-      <SavedItemsProvider userId="demo-user">
-        <ProfileProvider userId="demo-user">
-          <ClothingPlaceApp />
-        </ProfileProvider>
-      </SavedItemsProvider>
+      <CatalogProvider>
+        <SavedItemsProvider userId="demo-user">
+          <ProfileProvider userId="demo-user">
+            <ClothingPlaceApp />
+          </ProfileProvider>
+        </SavedItemsProvider>
+      </CatalogProvider>
     </SafeAreaProvider>
   );
 }

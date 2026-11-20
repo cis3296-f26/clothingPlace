@@ -86,6 +86,14 @@ test('returns null imageUrl when nothing has been uploaded', () => {
   assert.equal(product.imageUrl, null);
 });
 
+test('treats an empty resolved URL as no image', () => {
+  // No resolver passed, so the default returns ''
+  const catalogProduct = mapCatalogRow(byId('p-washed-denim-jacket'));
+  assert.ok(catalogProduct);
+  assert.equal(catalogProduct.imageUrl, null);
+  assert.equal(toFeedProduct(catalogProduct).imageUrl, PLACEHOLDER_IMAGE);
+});
+
 test('filters out null style-tag joins', () => {
   const product = mapCatalogRow(byId('p-beanie'), resolveImage);
   assert.ok(product);

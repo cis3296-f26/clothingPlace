@@ -1,4 +1,4 @@
-import { supabase } from '../lib/supabase';
+import { supabase, SUPABASE_NOT_CONFIGURED } from '../lib/supabase';
 import type { CatalogRow } from '../../data/catalogTypes';
 
 // The nested select the mapper expects. Kept as a constant so the same string
@@ -23,6 +23,10 @@ export type CatalogResult =
 // relationship, so the cast is deliberate: if the select above changes, this
 // is where the mismatch surfaces.
 export async function fetchCatalogRows(): Promise<CatalogResult> {
+  if (!supabase) {
+    return { status: 'error', message: SUPABASE_NOT_CONFIGURED };
+  }
+
   const { data, error } = await supabase
     .from('products')
     .select(CATALOG_SELECT)

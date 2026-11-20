@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { sampleProducts } from '../../data/sampleProducts';
+import { useCatalog } from '../catalog/CatalogContext';
 import PhotoSourceSheet from '../components/PhotoSourceSheet';
 import WebcamCapture from '../components/WebcamCapture';
 import { PhotoSource, usePhotoPicker } from '../media/usePhotoPicker';
@@ -55,6 +56,7 @@ function formatMemberSince(epochMs: number): string {
 export default function ProfileScreen({ onOpenWishlist, onOpenProduct, bottomPadding = 30 }: Props) {
   const { profile, hydrated, updateProfile, toggleStyleTag, setPhotoUri } = useProfile();
   const { items: savedItems, hydrated: savedHydrated } = useSavedItems();
+  const { findProduct } = useCatalog();
   const photoPicker = usePhotoPicker();
 
   const [photoSheetVisible, setPhotoSheetVisible] = useState(false);
@@ -322,7 +324,7 @@ export default function ProfileScreen({ onOpenWishlist, onOpenProduct, bottomPad
         ) : (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recentRow}>
             {recentSaved.map(({ product }) => {
-              const imageUrl = sampleProducts.find((p) => p.id === product.id)?.imageUrl;
+              const imageUrl = findProduct(product.id)?.imageUrl;
               return (
                 <Pressable
                   key={product.id}

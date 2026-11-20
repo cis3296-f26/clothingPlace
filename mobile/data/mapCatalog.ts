@@ -30,7 +30,9 @@ function resolveFirst(
 ): string | null {
   // Nothing uploaded yet, let the UI show its placeholder
   if (paths.length === 0) return null;
-  return resolveImage(paths[0]);
+  // The default resolver returns '' until there's a storage bucket, and an
+  // empty URI renders a blank image instead of the placeholder
+  return resolveImage(paths[0]) || null;
 }
 
 export function mapCatalogRow(
