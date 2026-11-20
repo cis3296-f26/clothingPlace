@@ -75,6 +75,22 @@ export default function ProductFeed({
           )}
         </View>
       }
+      ListEmptyComponent={
+        <View style={styles.empty}>
+          {trimmedQuery === "" ? (
+            <Text style={styles.emptyText}>No listings available yet.</Text>
+          ) : (
+            <>
+              <Text style={styles.emptyText}>
+                No listings match "{trimmedQuery}".
+              </Text>
+              <Text style={styles.emptyHint}>
+                Try a category, a style, or a neighborhood name.
+              </Text>
+            </>
+          )}
+        </View>
+      }
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode="on-drag"
