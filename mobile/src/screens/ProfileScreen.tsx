@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,6 +11,9 @@ import {
   View,
 } from 'react-native';
 import { sampleProducts } from '../../data/sampleProducts';
+import PhotoSourceSheet from '../components/PhotoSourceSheet';
+import WebcamCapture from '../components/WebcamCapture';
+import { PhotoSource, usePhotoPicker } from '../media/usePhotoPicker';
 import { useProfile } from '../profile/ProfileContext';
 import { useSavedItems } from '../saved/SavedItemsContext';
 
@@ -49,9 +53,14 @@ function formatMemberSince(epochMs: number): string {
 }
 
 export default function ProfileScreen({ onOpenWishlist, onOpenProduct, bottomPadding = 30 }: Props) {
-  const { profile, hydrated, updateProfile, toggleStyleTag } = useProfile();
+  const { profile, hydrated, updateProfile, toggleStyleTag, setPhotoUri } = useProfile();
   const { items: savedItems, hydrated: savedHydrated } = useSavedItems();
+  const photoPicker = usePhotoPicker();
 
+  const [photoSheetVisible, setPhotoSheetVisible] = useState(false);
+  const [webcamVisible, setWebcamVisible] = useState(false);
+  // If a saved photo file is gone (e.g. the OS cleared it), fall back to initials
+  const [failedPhotoUri, setFailedPhotoUri] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
   const [draftName, setDraftName] = useState('');
   const [draftNeighborhood, setDraftNeighborhood] = useState('');
@@ -89,6 +98,17 @@ export default function ProfileScreen({ onOpenWishlist, onOpenProduct, bottomPad
   };
 
   const displayName = profile.displayName || 'Guest Shopper';
+  const showPhoto = profile.photoUri !== null && profile.photoUri !== failedPhotoUri;
+
+  const choosePhoto = async (source: PhotoSource) => {
+    // Desktop browsers open a file picker for "camera", so use the webcam screen instead
+    if (source === 'camera' && Platform.OS === 'web') {
+      setWebcamVisible(true);
+      return;
+    }
+    const uri = await photoPicker.pickPhoto(source);
+    if (uri) setPhotoUri(uri);
+  };
 
   return (
     <ScrollView
@@ -113,9 +133,31 @@ export default function ProfileScreen({ onOpenWishlist, onOpenProduct, bottomPad
 
       {/* Identity card */}
       <View style={styles.identityCard}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{initialsFor(editing ? draftName : profile.displayName)}</Text>
-        </View>
+        <Pressable
+          onPress={() => setPhotoSheetVisible(true)}
+          disabled={photoPicker.busy}
+          accessibilityRole="button"
+          accessibilityLabel={showPhoto ? 'Change profile photo' : 'Add profile photo'}
+        >
+          <View style={styles.avatar}>
+            {showPhoto ? (
+              <Image
+                source={{ uri: profile.photoUri as string }}
+                style={styles.avatarImage}
+                onError={() => setFailedPhotoUri(profile.photoUri)}
+              />
+            ) : (
+              <Text style={styles.avatarText}>{initialsFor(editing ? draftName : profile.displayName)}</Text>
+            )}
+          </View>
+          <View style={styles.cameraBadge}>
+            {photoPicker.busy ? (
+              <ActivityIndicator size="small" color="#111" />
+            ) : (
+              <Text style={styles.cameraBadgeText}>📷</Text>
+            )}
+          </View>
+        </Pressable>
 
         {editing ? (
           <View style={styles.editForm}>
@@ -186,6 +228,37 @@ export default function ProfileScreen({ onOpenWishlist, onOpenProduct, bottomPad
           </View>
         )}
       </View>
+
+      {/* Camera permission or picker problem */}
+      {photoPicker.error && (
+        <View style={styles.photoError} accessibilityRole="alert">
+          <Text style={styles.photoErrorText}>{photoPicker.error.message}</Text>
+          <View style={styles.photoErrorActions}>
+            {photoPicker.error.canOpenSettings && (
+              <Pressable onPress={photoPicker.openSettings} accessibilityRole="button" hitSlop={8}>
+                <Text style={styles.photoErrorLink}>Open Settings</Text>
+              </Pressable>
+            )}
+            <Pressable onPress={photoPicker.clearError} accessibilityRole="button" hitSlop={8}>
+              <Text style={styles.photoErrorDismiss}>Dismiss</Text>
+            </Pressable>
+          </View>
+        </View>
+      )}
+
+      <PhotoSourceSheet
+        visible={photoSheetVisible}
+        hasPhoto={showPhoto}
+        onSelect={choosePhoto}
+        onRemove={() => setPhotoUri(null)}
+        onClose={() => setPhotoSheetVisible(false)}
+      />
+
+      <WebcamCapture
+        visible={webcamVisible}
+        onCapture={setPhotoUri}
+        onClose={() => setWebcamVisible(false)}
+      />
 
       {/* Stats */}
       <View style={styles.statsRow}>
@@ -339,6 +412,52 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 22,
     fontWeight: '700',
+  },
+  avatarImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+  },
+  cameraBadge: {
+    position: 'absolute',
+    right: -4,
+    bottom: -4,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#ddd',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cameraBadgeText: {
+    fontSize: 13,
+  },
+  photoError: {
+    marginTop: 12,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: '#fff4e5',
+  },
+  photoErrorText: {
+    fontSize: 13,
+    color: '#6b4500',
+    lineHeight: 19,
+  },
+  photoErrorActions: {
+    flexDirection: 'row',
+    gap: 20,
+    marginTop: 8,
+  },
+  photoErrorLink: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#111',
+  },
+  photoErrorDismiss: {
+    fontSize: 13,
+    color: '#666',
   },
   identityInfo: {
     flex: 1,
