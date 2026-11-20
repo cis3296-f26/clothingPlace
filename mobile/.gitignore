@@ -36,6 +36,9 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# compiled output from `npm test`
+.catalog-test-build/
+
 # generated native folders
 /ios
 /android

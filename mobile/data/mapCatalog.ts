@@ -1,40 +1,68 @@
-import type {CatalogProduct, CatalogRow} from './catalogTypes';
+import type {
+  CatalogProduct,
+  CatalogRow,
+  CatalogVariant,
+} from './catalogTypes';
+
+// The card only has room for one price, so show the cheapest variant.
+function lowestPrice(variants: CatalogVariant[]): number {
+  return variants.reduce(
+    (lowest, variant) =>
+      variant.price_cents < lowest ? variant.price_cents : lowest,
+    variants[0].price_cents,
+  );
+}
+
+function uniqueInOrder(values: string[]): string[] {
+  return [...new Set(values)];
+}
+
+// Cover photo is the lowest position. Copy first so we don't reorder the row.
+function coverPaths(row: CatalogRow): string[] {
+  return [...row.product_images]
+    .sort((a, b) => a.position - b.position)
+    .map((image) => image.storage_path);
+}
+
+function resolveFirst(
+  paths: string[],
+  resolveImage: (storagePath: string) => string,
+): string | null {
+  // Nothing uploaded yet, let the UI show its placeholder
+  if (paths.length === 0) return null;
+  return resolveImage(paths[0]);
+}
 
 export function mapCatalogRow(
-    row: CatalogRow,
-    resolveImage: (storagePath: string) => string = () => '',
-  ): CatalogProduct | null {
-    // No price means no card. Drop it
-    if (row.product_variants.length === 0) {
-      console.warn(`[catalog] "${row.name}" has no variants and was dropped`);
-      return null;
-    }
+  row: CatalogRow,
+  resolveImage: (storagePath: string) => string = () => '',
+): CatalogProduct | null {
+  // No variants means no price, so there's nothing to show
+  if (row.product_variants.length === 0) {
+    console.warn(`[catalog] "${row.name}" has no variants and was dropped`);
+    return null;
+  }
 
-    // The cheapest variant sets the price shown on the card
-    const variant = row.product_variants.reduce((lowest, next) =>
-      next.price_cents < lowest.price_cents ? next : lowest,
-    );
+  const variants = row.product_variants;
 
-    // The first image by position is the card photo
-    const cover = [...row.product_images].sort(
-      (a, b) => a.position - b.position,
-    )[0];
+  const styleTags = row.product_style_tags
+    .map((join) => join.style_tags?.name)
+    .filter((name): name is string => Boolean(name));
 
-    const styleTags = row.product_style_tags
-      .map(({style_tags}) => style_tags?.name)
-      .filter((name): name is string => Boolean(name));
-
-    return {
-      id: row.id,
-      name: row.name,
-      priceCents: variant.price_cents,
-      category: row.categories?.name ?? null,
-      color: variant.color,
-      styleTags,
-      vendorId: row.vendors.id,
-      vendorName: row.vendors.name,
-      neighborhood: row.vendors.neighborhood,
-      imageUrl: cover ? resolveImage(cover.storage_path) : null,
-      description: row.description,
-    };
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description,
+    vendorId: row.vendors.id,
+    vendorName: row.vendors.name,
+    neighborhood: row.vendors.neighborhood,
+    category: row.categories?.name ?? null,
+    imageUrl: resolveFirst(coverPaths(row), resolveImage),
+    styleTags,
+    variants,
+    priceCents: lowestPrice(variants),
+    sizes: uniqueInOrder(variants.map((variant) => variant.size)),
+    colors: uniqueInOrder(variants.map((variant) => variant.color)),
+    inStock: variants.some((variant) => variant.stock_qty > 0),
+  };
 }
